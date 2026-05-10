@@ -110,5 +110,5 @@ doc/
 - Newline come separatore (no `;`)
 - `--strict` promuove warning a errori (usato nello scoring)
 - Magic numbers non bloccati separatamente (coperti da tipi nominali)
-- Concorrenza non ancora presente — necessaria per il prossimo salto di score
+- Concorrenza non ancora presente — decisione presa: **Actor Model** (vedi `doc/11-concorrenza.md`). Si integra con service/provide/needs. Bloccherà Race Condition, Deadlock, Busy Waiting.
 - Ogni prototipo ha i propri test (inclusi quelli ereditati dai padri, nella propria sintassi)

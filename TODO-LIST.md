@@ -10,7 +10,7 @@
 ## Priorità media
 
 - [ ] **Risolvere assenza ereditarietà** — 3 problemi aperti: verbosità delega, polimorfismo ad-hoc, interop framework. Vedi `doc/04-bibliografia.md` sezione "Assenza di ereditarietà"
-- [ ] **Concorrenza sicura** — aggiungere primitiva di concorrenza che blocchi Race Condition, Deadlock, Busy Waiting by design. Possibili approcci: actor model, structured concurrency, ownership (Rust-style)
+- [ ] **Concorrenza sicura (Actor Model)** — `spawn` crea attori, `service` = interfaccia attore, stato privato, messaggi immutabili. Blocca Race Condition, Deadlock, Busy Waiting. Vedi `doc/11-concorrenza.md`
 - [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: esecuzione runtime dei test (attualmente solo compile-time check).
 - [x] **Derivare prototipi livello 4** — p4a implementato (score 47). Padri: p3b + p2c. Multi-file compiler.
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri
