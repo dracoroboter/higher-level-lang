@@ -23,8 +23,16 @@ public class Main {
         }
 
         String source = Files.readString(Path.of(args[0]));
-        boolean checkOnly = args.length > 1 && args[1].equals("--check-only");
-        boolean testMode = args.length > 1 && args[1].equals("--test");
+        boolean checkOnly = false;
+        boolean testMode = false;
+        boolean strict = false;
+        for (int i = 1; i < args.length; i++) {
+            switch (args[i]) {
+                case "--check-only" -> checkOnly = true;
+                case "--test" -> testMode = true;
+                case "--strict" -> strict = true;
+            }
+        }
 
         // Parse
         var lexer = new HllLexer(CharStreams.fromString(source));
@@ -61,13 +69,17 @@ public class Main {
         checker.check(program);
 
         for (var warning : checker.getWarnings()) {
-            System.err.println("WARNING: " + warning);
+            if (strict) {
+                System.err.println("ERROR: " + warning);
+            } else {
+                System.err.println("WARNING: " + warning);
+            }
         }
         for (var error : checker.getErrors()) {
             System.err.println("ERROR: " + error);
         }
 
-        if (checker.hasErrors()) {
+        if (checker.hasErrors() || (strict && !checker.getWarnings().isEmpty())) {
             System.err.println("\nCompilation failed with " + checker.getErrors().size() + " error(s).");
             System.exit(1);
         }

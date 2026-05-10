@@ -1,0 +1,10 @@
+// Test: tentativo di usare null
+// DEVE ESSERE RIFIUTATO: null non esiste nel linguaggio
+
+struct Customer {
+    String name
+}
+
+function main() {
+    let Customer c = null  // ERROR: 'null' is not a valid expression
+}

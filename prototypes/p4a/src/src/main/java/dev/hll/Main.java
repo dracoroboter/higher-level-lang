@@ -23,8 +23,16 @@ public class Main {
         }
 
         String target = args[0];
-        boolean checkOnly = args.length > 1 && args[1].equals("--check-only");
-        boolean testMode = args.length > 1 && args[1].equals("--test");
+        boolean checkOnly = false;
+        boolean testMode = false;
+        boolean strict = false;
+        for (int i = 1; i < args.length; i++) {
+            switch (args[i]) {
+                case "--check-only" -> checkOnly = true;
+                case "--test" -> testMode = true;
+                case "--strict" -> strict = true;
+            }
+        }
 
         Path path = Path.of(target);
         List<Path> files;
@@ -143,7 +151,12 @@ public class Main {
             checker.check(program);
 
             for (var warning : checker.getWarnings()) {
-                System.err.println("WARNING: [" + modName + "] " + warning);
+                if (strict) {
+                    System.err.println("ERROR: [" + modName + "] " + warning);
+                    hasErrors = true;
+                } else {
+                    System.err.println("WARNING: [" + modName + "] " + warning);
+                }
             }
             for (var error : checker.getErrors()) {
                 System.err.println("ERROR: [" + modName + "] " + error);

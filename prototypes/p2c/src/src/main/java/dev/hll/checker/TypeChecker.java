@@ -12,6 +12,7 @@ public class TypeChecker {
     private final Map<String, StructDecl> structs = new HashMap<>();
     private final Map<String, FnDecl> functions = new HashMap<>();
     private final Map<String, ImportDecl> imports = new HashMap<>();
+    private List<String> currentFnFails = List.of();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -56,6 +57,7 @@ public class TypeChecker {
         for (var param : fn.params()) {
             scope.put(param.name(), param.type());
         }
+        currentFnFails = fn.effects(); // in p2c, effects field holds fails
         checkBlock(fn.body(), scope, fn.name());
     }
 
@@ -70,6 +72,17 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
+                // Check: if calling a function that fails, must handle or propagate
+                if (!ls.hasErrorHandler() && ls.value() instanceof FnCall fc) {
+                    var calledFn = functions.get(fc.name());
+                    if (calledFn != null && !calledFn.effects().isEmpty()) {
+                        for (String err : calledFn.effects()) {
+                            if (!currentFnFails.contains(err)) {
+                                errors.add("Unhandled error '" + err + "' from '" + fc.name() + "' in '" + context + "'. Must handle with | handler or propagate with 'fails " + err + "'");
+                            }
+                        }
+                    }
+                }
             }
             case ReturnStmt rs -> {
                 if (rs.value().isPresent()) {
@@ -140,6 +153,7 @@ public class TypeChecker {
     }
 
     private TypeExpr inferType(Expr expr, Map<String, TypeExpr> scope, String context, int chainDepth) {
+        if (expr == null) return null;
         switch (expr) {
             case Identifier id -> {
                 if (id.name().equals("null")) {

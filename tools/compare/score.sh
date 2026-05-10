@@ -33,20 +33,12 @@ for f in "$BENCHMARK_DIR"/*.hll; do
 done
 
 invalid_ok=0; invalid_total=0
-seen_files=""
-# Include own tests AND all tests from other prototypes (overall score)
-PROTO_PARENT=$(dirname "$PROTO")
-for dir in $(find "$PROTO_PARENT" -path "*/tests/invalid" -type d 2>/dev/null); do
-    [ -d "$dir" ] || continue
-    for f in "$dir"/*.hll; do
-        [ -f "$f" ] || continue
-        basename_f=$(basename "$f")
-        if echo "$seen_files" | grep -q "$basename_f"; then continue; fi
-        seen_files="$seen_files $basename_f"
-        invalid_total=$((invalid_total+1))
-        result=$(cd "$SRC" && mvn exec:java -Dexec.mainClass=dev.hll.Main -Dexec.args="$(realpath $f) --check-only" -q 2>&1)
-        if echo "$result" | grep -q "^ERROR:\|Parse error"; then invalid_ok=$((invalid_ok+1)); fi
-    done
+# Use only the prototype's own tests (each prototype has its own + inherited tests in its own syntax)
+for f in "$INVALID_DIR"/*.hll; do
+    [ -f "$f" ] || continue
+    invalid_total=$((invalid_total+1))
+    result=$(cd "$SRC" && mvn exec:java -Dexec.mainClass=dev.hll.Main -Dexec.args="$(realpath $f) --check-only --strict" -q 2>&1)
+    if echo "$result" | grep -q "^ERROR:\|Parse error\|Compilation failed"; then invalid_ok=$((invalid_ok+1)); fi
 done
 
 if [ $valid_total -eq 0 ]; then valid_pct=0; else valid_pct=$((valid_ok * 100 / valid_total)); fi

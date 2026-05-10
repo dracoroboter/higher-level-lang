@@ -14,6 +14,7 @@ public class TypeChecker {
     private final Map<String, Node.StateDecl> stateTypes = new HashMap<>();
     private final Map<String, String> varStates = new HashMap<>();
     private final Map<String, ImportDecl> imports = new HashMap<>();
+    private List<String> currentFnEffects = List.of();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -60,6 +61,7 @@ public class TypeChecker {
             scope.put(param.name(), param.type());
         }
         varStates.clear();
+        currentFnEffects = fn.effects();
         checkBlock(fn.body(), scope, fn.name());
     }
 
@@ -74,6 +76,17 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
+                // Check: if calling a function with effects, must handle or propagate
+                if (ls.value() instanceof FnCall fc) {
+                    var calledFn = functions.get(fc.name());
+                    if (calledFn != null && !calledFn.effects().isEmpty()) {
+                        for (String eff : calledFn.effects()) {
+                            if (!currentFnEffects.contains(eff)) {
+                                errors.add("Unhandled effect '" + eff + "' from '" + fc.name() + "' in '" + context + "'. Must handle or propagate with 'effects { " + eff + " }'");
+                            }
+                        }
+                    }
+                }
             }
             case ReturnStmt rs -> {
                 if (rs.value().isPresent()) {
@@ -144,6 +157,7 @@ public class TypeChecker {
     }
 
     private TypeExpr inferType(Expr expr, Map<String, TypeExpr> scope, String context, int chainDepth) {
+        if (expr == null) return null;
         switch (expr) {
             case Identifier id -> {
                 if (id.name().equals("null")) {
@@ -180,6 +194,10 @@ public class TypeChecker {
                     warnings.add("Law of Demeter: chain depth " + newDepth + " exceeds max " + maxChainDepth + " in '" + context + "'");
                 }
                 inferType(mc.object(), scope, context, newDepth);
+                // State type constructor: StateType.new()
+                if (mc.method().equals("new") && mc.object() instanceof Identifier objId2 && stateTypes.containsKey(objId2.name())) {
+                    return new TypeExpr(objId2.name(), Optional.empty());
+                }
                 if (mc.object() instanceof Identifier objId) {
                     String varName = objId.name();
                     var varType = scope.get(varName);
@@ -197,6 +215,7 @@ public class TypeChecker {
                                 errors.add("Method '" + mc.method() + "' is not available in state '" + currentState + "' of " + varType.name() + ". In: " + context);
                             } else {
                                 varStates.put(varName, method.targetState());
+                                return varType; // state type method returns same state type
                             }
                         }
                     }

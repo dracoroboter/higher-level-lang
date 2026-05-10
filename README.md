@@ -22,9 +22,9 @@ Secondary questions:
 | p2a | "result chain" | Errors as values (Result + ?) | 44 | 🏚️ Retired |
 | p2b | "effect" | Algebraic effects | 43 | 🏚️ Retired |
 | p2c | "checked simple" | Improved checked exceptions | 45 | ✅ Winner L2 |
-| p3a | "state strict" | Typestate with mandatory rebinding | 48 | ✅ Working |
-| p3b | "state light" | Typestate with in-place mutation | 47 | ✅ Winner L3 |
-| p4a | "module" | Module system + DI + DAG deps | 47 | ✅ Working |
+| p3a | "state strict" | Typestate with mandatory rebinding | 55 | ✅ Working |
+| p3b | "state light" | Typestate with in-place mutation | 54 | ✅ Winner L3 |
+| p4a | "module" | Module system + DI + DAG deps | 49 | ✅ Working |
 
 Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
 

@@ -3,7 +3,7 @@
 ## Priorità alta
 
 - [ ] **Naming convention + minimizzare builtin** — applicare camelCase a tutti i file .hll, rimuovere println/parseInt come builtin, sostituire con wrapper Java
-- [ ] **Script di scoring automatico** — `tools/compare/score.sh` che calcola lo score di un prototipo con un comando
+- [x] **Script di scoring automatico** — `tools/compare/score.sh`, usa solo test del prototipo, `--strict` per warning→error
 - [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL per scoprire i limiti pratici del linguaggio
 - [x] **Verificare procedura di loop** — aggiunto step 2b (confronto output Java) alla PROCEDURE.md
 
@@ -26,7 +26,8 @@
 ## Prossimo passo (loop di sviluppo)
 
 - [x] **Derivare prototipi livello 3** — p3a e p3b implementati (p3a=48, p3b=47). p3b vince per ceremony ratio (-216%).
-- [ ] **Derivare prototipi livello 4** — p3b è il vincitore. Tema possibile: module system (DAG, injection, service)
+- [x] **Derivare prototipi livello 4** — p4a implementato (score 46). Padri: p3b + p2c. Multi-file compiler.
+- [ ] **Test semantici astratti** — definire antipattern come spec astratte (es. "use-after-close"), ogni prototipo genera la propria versione del test. Elimina la copia manuale tra prototipi.
 
 ## Completati (2026-05-10)
 
