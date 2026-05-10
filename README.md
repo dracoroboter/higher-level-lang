@@ -19,13 +19,13 @@ Secondary questions:
 | Proto | Nickname | Hypothesis | Score | Status |
 |---|---|---|---|---|
 | p1 | "null train" | Null safety + nominal types + Demeter | 28 | ✅ Working |
-| p2a | "result chain" | Errors as values (Result + ?) | 35 | ✅ Working |
-| p2b | "effect" | Algebraic effects | 36 | ✅ Working |
-| p2c | "checked simple" | Improved checked exceptions | 30 | ✅ Working |
-| p3a | "state strict" | Typestate with mandatory rebinding | 55 | ✅ Working |
-| p3b | "state light" | Typestate with in-place mutation | 55 | ✅ Working |
+| p2a | "result chain" | Errors as values (Result + ?) | 44 | ✅ Working |
+| p2b | "effect" | Algebraic effects | 43 | ✅ Working |
+| p2c | "checked simple" | Improved checked exceptions | 45 | ✅ Working |
+| p3a | "state strict" | Typestate with mandatory rebinding | 48 | ✅ Working |
+| p3b | "state light" | Typestate with in-place mutation | 47 | ✅ Working |
 
-Score = weighted average of: correctness (30%), conciseness (25%), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
+Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
 
 ### Prototype Intents
 

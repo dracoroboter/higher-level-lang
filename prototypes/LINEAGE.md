@@ -17,11 +17,11 @@ p1 "null train"
 | Proto | Padri | Nickname | Tema | Stato | Score |
 |-------|-------|----------|------|-------|-------|
 | p1 | — | null train | null safety + tipi nominali + Demeter | ✅ funzionante | 28 |
-| p2a | p1 | result chain | eccezioni come valori (Result + ?) | ✅ funzionante | 35 |
-| p2b | p1 | effect | effetti algebrici dichiarati | ✅ funzionante | 36 |
-| p2c | p1 | checked simple | checked exceptions migliorate | ✅ funzionante | 30 |
-| p3a | p2b | state strict | type-state con ownership obbligatoria | ✅ funzionante | 55 |
-| p3b | p2b | state light | type-state con ownership solo su state | ✅ funzionante | 55 |
+| p2a | p1 | result chain | eccezioni come valori (Result + ?) | ✅ funzionante | 44 |
+| p2b | p1 | effect | effetti algebrici dichiarati | ✅ funzionante | 43 |
+| p2c | p1 | checked simple | checked exceptions migliorate | ✅ funzionante | 45 |
+| p3a | p2b | state strict | type-state con ownership obbligatoria | ✅ funzionante | 48 |
+| p3b | p2b | state light | type-state con ownership solo su state | ✅ funzionante | 47 |
 | p3c | p2b | state runtime | type-state con verifica a runtime | ❌ scartato | — |
 
 ## Come leggere la genealogia
