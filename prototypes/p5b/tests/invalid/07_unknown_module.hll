@@ -1,0 +1,8 @@
+// INVALID: importing from non-existent module
+module broken
+
+import phantom.DoesNotExist  // ERROR: module phantom not found
+
+function main() {
+    let x = DoesNotExist()
+}

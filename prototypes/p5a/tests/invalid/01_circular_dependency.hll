@@ -1,0 +1,10 @@
+// INVALID: circular dependency — module imports itself
+module selfloop
+
+import selfloop.helper  // ERROR: module imports itself → circular dependency
+
+export function helper() -> Int { 42 }
+
+function main() {
+    let x = helper()
+}

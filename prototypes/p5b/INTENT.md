@@ -82,3 +82,10 @@ Nessun linguaggio mainstream enforced la purezza nelle clausole di iterazione a 
 - Test: 1 valid (clausole pure), 2 invalid (impure when rifiutato)
 - Mancano: codegen completo, benchmark L5, List<T> builtin
 
+
+### Nota: `when` vs `where`
+
+`where` è usato per i vincoli sui tipi (`type Email = String where validate.email()`).
+`when` è usato per il filtro nell'iterazione (`for x in list when x > 0`).
+
+Due token distinti per evitare ambiguità: lo stesso simbolo con due significati in contesti diversi è una fonte di confusione.

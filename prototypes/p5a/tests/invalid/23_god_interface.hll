@@ -1,0 +1,15 @@
+// INVALID: God Interface — too many methods in one service
+module bloated
+
+export service DoEverything {
+    function create() -> Unit
+    function read() -> String
+    function update() -> Unit
+    function delete() -> Unit
+    function validate() -> Bool
+    function transform() -> String
+    function notify() -> Unit
+    function log() -> Unit
+    function cache() -> Unit
+    function exportData() -> String
+}

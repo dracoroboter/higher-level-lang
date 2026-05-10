@@ -46,4 +46,4 @@ function main() {
 - Curva di apprendimento: il programmatore deve capire il move semantics
 
 ### Stato
-🔲 Da implementare
+✅ Funzionante (2026-05-10)

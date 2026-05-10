@@ -203,6 +203,13 @@ public class JavaCodeGen {
                 indent--;
                 emit("}");
             }
+            case ForInStmt fi -> {
+                emit("for (var " + fi.varName() + " : " + generateExpr(fi.iterable()) + ") {");
+                indent++;
+                generateBlock(fi.body());
+                indent--;
+                emit("}");
+            }
             case AssignStmt as2 -> emit(as2.name() + " = " + generateExpr(as2.value()) + ";");
         }
     }
@@ -304,6 +311,7 @@ public class JavaCodeGen {
             }
             case SpawnExpr se -> "new " + se.serviceName() + "Actor()";
             case AwaitExpr ae -> generateExpr(ae.expr()) + ".get()";
+            case LambdaExpr le -> le.param() + " -> " + generateExpr(le.body());
         };
     }
 

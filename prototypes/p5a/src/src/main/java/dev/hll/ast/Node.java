@@ -68,6 +68,8 @@ public sealed interface Node {
 
     record WhileStmt(Expr condition, Block body) implements Statement {}
 
+    record ForInStmt(String varName, Expr iterable, Block body) implements Statement {}
+
 
     record AssignStmt(String name, Expr value) implements Statement {}
 
@@ -122,4 +124,6 @@ public sealed interface Node {
     record SpawnExpr(String serviceName) implements Expr {}
 
     record AwaitExpr(Expr expr) implements Expr {}
+
+    record LambdaExpr(String param, Expr body) implements Expr {}
 }

@@ -1,0 +1,19 @@
+// MUST BE REJECTED: disconnect called twice (double close)
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send(String data) -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    conn.connect()
+    conn.disconnect()
+    conn.disconnect()  // ERROR: disconnect not available in state Closed
+}

@@ -48,4 +48,4 @@ function main() {
 - Più ergonomico: `conn.connect()` invece di `let conn = conn.connect()`
 
 ### Stato
-🔲 Da implementare
+✅ Funzionante (2026-05-10)

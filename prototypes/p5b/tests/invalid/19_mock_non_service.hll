@@ -1,0 +1,14 @@
+// INVALID: cannot mock a struct (only services are mockable)
+module apptest
+
+struct Config {
+    String name
+}
+
+test "mock non-service" {
+    mock Config {
+        function name() -> String {
+            "fake"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+// INVALID: provide with unsatisfied needs
+module broken
+
+export service Cache {
+    function get(String key) -> Option<String>
+}
+
+export service AppService {
+    function run() -> Unit
+}
+
+provide AppService {
+    needs Cache cache       // ERROR: no provide for Cache exists in the module graph
+
+    function run() -> Unit {
+        let val = cache.get("key")
+    }
+}

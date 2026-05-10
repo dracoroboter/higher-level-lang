@@ -1,0 +1,24 @@
+// Test: for-in + lambda + pipeline
+module iteration
+
+type Amount = Int
+
+struct Order {
+    String id,
+    Amount amount
+}
+
+function main() {
+    let orders = List(Order("O1", Amount(100)), Order("O2", Amount(200)))
+
+    // Imperative for-in
+    for order in orders {
+        println(order.id)
+    }
+
+    // Lambda with filter (method call on collection)
+    let big = orders.filter(|o| o.amount > 150)
+
+    // Lambda with map
+    let ids = orders.map(|o| o.id)
+}

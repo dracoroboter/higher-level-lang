@@ -56,4 +56,8 @@ for order in orders.filter(|o| o.amount > 100) {
 - Java Streams: Goetz "State of the Lambda" (2013)
 
 ### Stato
-🔲 Da implementare
+⚠️ Parzialmente implementato (2026-05-10)
+- for-in + lambda (`|param| expr`) funzionanti
+- Score: 59 (25 test invalid + 8 blocked by design)
+- Perde contro p5b (62) perché non enforced purezza nelle pipeline
+

@@ -156,12 +156,17 @@ statement
     | returnStmt
     | ifStmt
     | whileStmt
+    | forInStmt
     | assignStmt
     | assertStmt
     | expectErrorStmt
     | expectFailStmt
     | mockStmt
     | exprStmt
+    ;
+
+forInStmt
+    : 'for' IDENT 'in' expr block
     ;
 
 mockStmt
@@ -252,6 +257,7 @@ primary
     | 'handle' expr '{' matchArm+ '}'          # handleExpr
     | 'spawn' IDENT                             # spawnExpr
     | 'await' expr                              # awaitExpr
+    | '|' IDENT '|' expr                        # lambdaExpr
     | IDENT                                     # identifier
     | STRING                                    # stringLit
     | NUMBER                                    # numberLit
@@ -291,6 +297,8 @@ MATCH   : 'match' ;
 IF      : 'if' ;
 ELSE    : 'else' ;
 WHILE   : 'while' ;
+FOR     : 'for' ;
+IN      : 'in' ;
 MUT     : 'mut' ;
 IMPORT  : 'import' ;
 JAVA    : 'java' ;

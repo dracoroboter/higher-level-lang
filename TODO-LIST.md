@@ -13,7 +13,16 @@
 
 - [ ] **Risolvere assenza ereditarietà** — 3 problemi aperti: verbosità delega, polimorfismo ad-hoc, interop framework. Vedi `doc/04-bibliografia.md` sezione "Assenza di ereditarietà"
 - [ ] **Concorrenza sicura (Actor Model)** — `spawn` crea attori, `service` = interfaccia attore, stato privato, messaggi immutabili. Blocca Race Condition, Deadlock, Busy Waiting. Vedi `doc/11-concorrenza.md`
-- [ ] **Iterazione (livello 5)** — for-in con clausole dichiarative + lambda per casi complessi. Richiede List<T> e lambda. Vedi `doc/12-iterazione.md`
+- [ ] **Iterazione (livello 5)** — for-in con clausole dichiarative + lambda per casi complessi. Vedi `doc/12-iterazione.md`
+  - [x] ConcurrentModification — bloccato (no reassign della collezione iterata)
+  - [x] Iterator invalidation — non applicabile (no puntatori, GC Java)
+  - [x] Off-by-one — bloccato (no indice manuale, solo for-in)
+  - [ ] Infinite loop — `take N` mitiga, ma while senza uscita resta possibile
+  - [ ] Resource leak su iteratori lazy — type-state potrebbe tracciare iteratore "aperto"
+  - [x] N+1 query — bloccato nel when (clausole pure), visibile nel body
+  - [ ] Interleaving/zip (iterare due collezioni in parallelo)
+  - [ ] Parallelismo sicuro nell'iterazione (auto-parallel se clausole pure)
+  - [ ] List<T> come tipo builtin con operazioni (size, get, add)
 - [ ] **Factory non coperti** — investigare Abstract Factory, Factory con stato, Factory con registrazione dinamica (plugin). Vedi `doc/13-factory.md`
 - [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: `expect_fail ErrorType { expr }` per test di errori runtime (non solo compile-time). Vedi Kotlin `assertThrows`, Rust `#[should_panic]`, QuickCheck property-based testing.
 - [x] **Derivare prototipi livello 4** — p4a implementato (score 47). Padri: p3b + p2c. Multi-file compiler.

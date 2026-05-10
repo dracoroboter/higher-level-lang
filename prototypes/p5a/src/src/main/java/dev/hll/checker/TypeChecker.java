@@ -355,6 +355,12 @@ public class TypeChecker {
                 inferType(ws.condition(), scope, context);
                 checkBlock(ws.body(), scope, context, currentFails);
             }
+            case ForInStmt fi -> {
+                inferType(fi.iterable(), scope, context);
+                var innerScope = new HashMap<>(scope);
+                innerScope.put(fi.varName(), null);
+                checkBlock(fi.body(), innerScope, context, currentFails);
+            }
             case AssignStmt as2 -> inferType(as2.value(), scope, context);
         }
     }
@@ -525,6 +531,14 @@ public class TypeChecker {
 
             case AwaitExpr ae -> {
                 return inferType(ae.expr(), scope, context, chainDepth);
+            }
+
+            case LambdaExpr le -> {
+                // Lambda is a value — type check the body with param in scope
+                var lambdaScope = new HashMap<>(scope);
+                lambdaScope.put(le.param(), null);
+                inferType(le.body(), lambdaScope, context);
+                return null; // lambda type
             }
 
             case OptionPropagate op -> {

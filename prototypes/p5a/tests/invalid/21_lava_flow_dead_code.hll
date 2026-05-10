@@ -1,0 +1,15 @@
+// INVALID: lava flow — function never called (dead code)
+module deadcode
+
+function usedFunction() -> Int {
+    42
+}
+
+function neverCalled() -> Int {
+    99
+}
+
+function main() {
+    let x = usedFunction()
+    println(x)
+}

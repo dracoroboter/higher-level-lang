@@ -1,0 +1,14 @@
+// INVALID: provide missing a method declared in service
+module incomplete
+
+export service Repo {
+    function find(Int id) -> String
+    function save(String data) -> Unit
+}
+
+provide Repo {
+    function find(Int id) -> String {
+        "found"
+    }
+    // ERROR: missing save() implementation
+}

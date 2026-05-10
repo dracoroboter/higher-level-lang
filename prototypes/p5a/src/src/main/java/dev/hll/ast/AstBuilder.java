@@ -282,6 +282,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitForInStmt(HllParser.ForInStmtContext ctx) {
+        String varName = ctx.IDENT().getText();
+        Node.Expr iterable = (Node.Expr) visit(ctx.expr());
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.ForInStmt(varName, iterable, body);
+    }
+
+    @Override
     public Object visitTestDecl(HllParser.TestDeclContext ctx) {
         String desc = ctx.STRING().getText().replace("\"", "");
         Node.Block body = buildBlock(ctx.block());
@@ -477,6 +485,13 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     @Override
     public Object visitAwaitExpr(HllParser.AwaitExprContext ctx) {
         return new Node.AwaitExpr((Node.Expr) visit(ctx.expr()));
+    }
+
+    @Override
+    public Object visitLambdaExpr(HllParser.LambdaExprContext ctx) {
+        String param = ctx.IDENT().getText();
+        Node.Expr body = (Node.Expr) visit(ctx.expr());
+        return new Node.LambdaExpr(param, body);
     }
 
     @Override

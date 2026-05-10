@@ -1,0 +1,8 @@
+// INVALID: accessing non-exported symbol from import
+module consumer
+
+import lib.privateHelper  // ERROR: privateHelper is not exported from lib
+
+function main() {
+    let x = privateHelper()
+}

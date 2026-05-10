@@ -1,0 +1,11 @@
+// INVALID: instantiating a service directly (must be injected)
+module direct
+
+export service Logger {
+    function log(String msg) -> Unit
+}
+
+function main() {
+    let log = Logger()  // ERROR: cannot instantiate a service, must be injected via needs
+    log.log("hello")
+}

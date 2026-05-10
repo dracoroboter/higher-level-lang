@@ -1,0 +1,15 @@
+// INVALID: cannot alias an actor — prevents shared mutable state
+module sharing
+
+export service Worker {
+    function doWork() -> Unit
+}
+
+provide Worker {
+    function doWork() -> Unit { }
+}
+
+function main() {
+    let w1 = spawn Worker
+    let w2 = w1  // ERROR: cannot alias actor, actors must have single owner
+}

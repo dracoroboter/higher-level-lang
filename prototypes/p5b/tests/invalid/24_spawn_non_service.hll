@@ -1,0 +1,10 @@
+// INVALID: cannot spawn a struct — only services can be actors
+module badspawn
+
+struct Config {
+    String name
+}
+
+function main() {
+    let actor = spawn Config  // ERROR: Config is not a service
+}

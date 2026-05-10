@@ -83,24 +83,25 @@ doc/
 - **Fase 2 (Analisi linguistica):** ✅ parziale — 6 territori con proposte di costrutto
 - **Fase 2b (Critica pilastri):** 🔲 da fare
 - **Fase 3 (Design core):** ✅ grammatica definita per tutti i prototipi
-- **Fase 4 (Prototipo):** ✅ 7 prototipi (p1, p2a, p2b, p2c, p3a, p3b, p4a). 4 attivi.
+- **Fase 4 (Prototipo):** ✅ 9 prototipi (p1, p2a, p2b, p2c, p3a, p3b, p4a, p5a, p5b). 6 attivi.
 - **Fase 5 (Valutazione):** ✅ scoring framework attivo con `--strict` e pesi configurabili
 
 ### Risultati principali
-- **p4a "module"** è il prototipo più avanzato (score 52, 60% antipattern bloccati)
+- **p5b "iterate query"** è il prototipo più avanzato (score 62, 80% antipattern bloccati)
+- Purezza delle clausole di iterazione verificata a compile-time (originalità)
 - Compilatore multi-file con DAG check e risoluzione cross-module
 - Module system: service/provide/needs/export + mock nativo per test
+- Actor model: spawn/await con no-aliasing (previene race condition)
 - Type-state verificato a compile-time (ereditato da p3b)
 - Checked errors con `fails` (ereditato da p2c)
-- Dead code detection, God Interface check, return path check
-- 28/46 antipattern bloccati (23 testati + 5 by design)
-- Mapping completo antipattern → meccanismo in `doc/10-mapping-antipattern.md`
-- Per arrivare al 70% servono: concorrenza sicura (4) + 2 check aggiuntivi
+- 37/46 antipattern bloccati (29 testati + 8 by design)
 
 ### Prototipi attivi
 | Proto | Score | Ruolo |
 |---|---|---|
-| p4a | 52 | Più avanzato — module system + tutti i check |
+| p5b | 62 | Più avanzato — iterazione con purezza enforced |
+| p5a | 59 | Livello 5 — iterazione con lambda |
+| p4a | 54 | Livello 4 — module system + actor model |
 | p3a | 52 | Livello 3 — typestate con rebinding |
 | p3b | 49 | Vincitore L3 — typestate in-place |
 | p2c | 40 | Vincitore L2 — checked errors |

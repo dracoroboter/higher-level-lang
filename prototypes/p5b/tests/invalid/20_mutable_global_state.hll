@@ -1,0 +1,9 @@
+// INVALID: mutable global state — top-level mutable variable
+module globals
+
+let mut counter = 0
+
+function increment() -> Int {
+    counter = counter + 1
+    counter
+}

@@ -1,0 +1,16 @@
+// INVALID: mock missing a method
+module apptest
+
+export service UserRepo {
+    function find(Int id) -> Option<String>
+    function save(String data) -> Unit
+}
+
+test "incomplete mock" {
+    mock UserRepo {
+        function find(Int id) -> Option<String> {
+            Some("mock")
+        }
+        // ERROR: missing save() method
+    }
+}
