@@ -159,7 +159,12 @@ statement
     | assignStmt
     | assertStmt
     | expectErrorStmt
+    | mockStmt
     | exprStmt
+    ;
+
+mockStmt
+    : 'mock' IDENT '{' fnDecl+ '}'
     ;
 
 letStmt
@@ -260,6 +265,7 @@ EXPORT  : 'export' ;
 SERVICE : 'service' ;
 PROVIDE : 'provide' ;
 NEEDS   : 'needs' ;
+MOCK    : 'mock' ;
 FAILS   : 'fails' ;
 FAIL    : 'fail' ;
 TYPE    : 'type' ;

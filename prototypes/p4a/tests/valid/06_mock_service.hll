@@ -1,0 +1,17 @@
+// Test: mock a service in a test block
+module apptest
+
+export service UserRepo {
+    function find(Int id) -> Option<String>
+    function save(String data) -> Unit
+}
+
+test "mock provides all methods" {
+    mock UserRepo {
+        function find(Int id) -> Option<String> {
+            Some("mock_user")
+        }
+        function save(String data) -> Unit {
+        }
+    }
+}

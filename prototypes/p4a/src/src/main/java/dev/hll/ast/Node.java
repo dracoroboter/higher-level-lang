@@ -74,6 +74,8 @@ public sealed interface Node {
 
     record ExpectErrorStmt(Block body) implements Statement {}
 
+    record MockStmt(String serviceName, List<FnDecl> methods) implements Statement {}
+
     record MatchArm(Pattern pattern, Expr body) implements Node {}
 
     sealed interface Pattern extends Node {}

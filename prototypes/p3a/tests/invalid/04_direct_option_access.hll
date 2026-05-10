@@ -15,6 +15,6 @@ struct Order {
     Customer customer
 }
 
-function bad_city(Order order) -> CityName {
+function badCity(Order order) -> CityName {
     order.customer.address.city  // ERROR: address is Option<Address>
 }

@@ -2,7 +2,7 @@
 
 ## Priorità alta
 
-- [ ] **Naming convention + minimizzare builtin** — applicare camelCase a tutti i file .hll, rimuovere println/parseInt come builtin, sostituire con wrapper Java
+- [x] **Naming convention + minimizzare builtin** — camelCase applicato, println/parseInt sono wrapper Java nel codegen (non keyword)
 - [x] **Script di scoring automatico** — `tools/compare/score.sh`, usa solo test del prototipo, `--strict` per warning→error
 - [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL per scoprire i limiti pratici del linguaggio
 - [x] **Verificare procedura di loop** — aggiunto step 2b (confronto output Java) alla PROCEDURE.md

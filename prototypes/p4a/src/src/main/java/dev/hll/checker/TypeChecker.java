@@ -101,7 +101,10 @@ public class TypeChecker {
                 if (exported) exportedSymbols.add("__provide__" + pd.serviceName());
             }
             case ExportDecl ed -> collectDeclaration(ed.inner(), true);
-            case TestDecl td -> {}
+            case TestDecl td -> {
+                // Check mock statements inside test bodies
+                checkBlock(td.body(), new HashMap<>(), "test:" + td.description(), List.of());
+            }
         }
     }
 
@@ -273,6 +276,21 @@ public class TypeChecker {
             }
             case AssertStmt as -> inferType(as.condition(), scope, context);
             case ExpectErrorStmt ee -> {}
+            case MockStmt ms -> {
+                // Check: mock target must be a declared service
+                if (!services.containsKey(ms.serviceName())) {
+                    errors.add("Cannot mock '" + ms.serviceName() + "': not a declared service. In: " + context);
+                } else {
+                    // Check: mock must implement all methods of the service
+                    var service = services.get(ms.serviceName());
+                    var mockMethods = ms.methods().stream().map(FnDecl::name).collect(java.util.stream.Collectors.toSet());
+                    for (var svcFn : service.methods()) {
+                        if (!mockMethods.contains(svcFn.name())) {
+                            errors.add("Incomplete mock for '" + ms.serviceName() + "': missing method '" + svcFn.name() + "'. In: " + context);
+                        }
+                    }
+                }
+            }
             case WhileStmt ws -> {
                 inferType(ws.condition(), scope, context);
                 checkBlock(ws.body(), scope, context, currentFails);

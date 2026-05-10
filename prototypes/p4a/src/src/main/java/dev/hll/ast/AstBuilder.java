@@ -295,6 +295,15 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitMockStmt(HllParser.MockStmtContext ctx) {
+        String serviceName = ctx.IDENT().getText();
+        List<Node.FnDecl> methods = ctx.fnDecl().stream()
+                .map(f -> (Node.FnDecl) visit(f))
+                .collect(Collectors.toList());
+        return new Node.MockStmt(serviceName, methods);
+    }
+
+    @Override
     public Object visitExpectErrorStmt(HllParser.ExpectErrorStmtContext ctx) {
         Node.Block body = buildBlock(ctx.block());
         return new Node.ExpectErrorStmt(body);

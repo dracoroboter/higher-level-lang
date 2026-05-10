@@ -194,6 +194,7 @@ public class JavaCodeGen {
             }
             case AssertStmt as -> emit("assert " + generateExpr(as.condition()) + ";");
             case ExpectErrorStmt ee -> {} // not generated
+            case MockStmt ms -> {} // mocks are compile-time only, not generated
             case WhileStmt ws -> {
                 emit("while (" + generateExpr(ws.condition()) + ") {");
                 indent++;
