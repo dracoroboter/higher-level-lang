@@ -21,11 +21,11 @@ p1 "null train" 🏚️ ritirato
 | p1 | — | null train | null safety + tipi nominali + Demeter | 🏚️ ritirato | 28 |
 | p2a | p1 | result chain | eccezioni come valori (Result + ?) | 🏚️ ritirato | 44 |
 | p2b | p1 | effect | effetti algebrici dichiarati | 🏚️ ritirato | 43 |
-| p2c | p1 | checked simple | checked exceptions migliorate | ✅ vincitore L2 | 45 |
-| p3a | p2b | state strict | type-state con ownership obbligatoria | ✅ funzionante | 55 |
-| p3b | p2b | state light | type-state con ownership solo su state | ✅ vincitore L3 | 54 |
+| p2c | p1 | checked simple | checked exceptions migliorate | ✅ vincitore L2 | 40 |
+| p3a | p2b | state strict | type-state con ownership obbligatoria | ✅ funzionante | 52 |
+| p3b | p2b | state light | type-state con ownership solo su state | ✅ vincitore L3 | 49 |
 | p3c | p2b | state runtime | type-state con verifica a runtime | ❌ scartato | — |
-| p4a | p3b, p2c | module | module system + injection + DAG deps | ✅ funzionante | 49 |
+| p4a | p3b, p2c | module | module system + injection + DAG deps | ✅ funzionante | 46 |
 
 ## Come leggere la genealogia
 

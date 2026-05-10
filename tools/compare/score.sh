@@ -58,12 +58,28 @@ for f in "$BENCHMARK_DIR"/*.hll; do
     if [ $loc -gt $hll_loc ]; then hll_loc=$loc; fi
 done
 
-# Find matching Java benchmark
-for f in "$JAVA_BENCH_DIR"/*.java; do
+# Find matching Java benchmark: first check prototype's own dir, then shared
+for f in "$BENCHMARK_DIR"/*.java; do
     [ -f "$f" ] || continue
     loc=$(grep -cv '^\s*$\|^\s*//' "$f" 2>/dev/null || echo 0)
     if [ $loc -gt $java_loc ]; then java_loc=$loc; fi
 done
+# If no Java in prototype dir, use shared benchmark matching the level
+if [ $java_loc -eq 0 ]; then
+    # Determine level from prototype name (p2x→L2, p3x→L3, p4x→L4)
+    level=$(echo "$PROTO_NAME" | grep -oP 'p\K[0-9]')
+    java_file="$JAVA_BENCH_DIR/BenchmarkL${level}.java"
+    if [ -f "$java_file" ]; then
+        java_loc=$(grep -cv '^\s*$\|^\s*//' "$java_file" 2>/dev/null || echo 0)
+    else
+        # Fallback: largest Java file in shared dir
+        for f in "$JAVA_BENCH_DIR"/*.java; do
+            [ -f "$f" ] || continue
+            loc=$(grep -cv '^\s*$\|^\s*//' "$f" 2>/dev/null || echo 0)
+            if [ $loc -gt $java_loc ]; then java_loc=$loc; fi
+        done
+    fi
+fi
 
 if [ $java_loc -eq 0 ]; then conciseness=0
 else conciseness=$((100 - (hll_loc * 100 / java_loc))); fi
@@ -80,11 +96,20 @@ for f in "$BENCHMARK_DIR"/*.hll; do
     cc=$(grep -c "match\|if\|while\|for" "$f" 2>/dev/null || echo 0)
     hll_cc=$((hll_cc + cc))
 done
-for f in "$JAVA_BENCH_DIR"/*.java; do
+# Use same Java file as conciseness comparison
+java_cc_file=""
+for f in "$BENCHMARK_DIR"/*.java; do
     [ -f "$f" ] || continue
-    cc=$(grep -c "if\|while\|for\|switch\|?" "$f" 2>/dev/null || echo 0)
-    java_cc=$((java_cc + cc))
+    java_cc_file="$f"
 done
+if [ -z "$java_cc_file" ]; then
+    level=$(echo "$PROTO_NAME" | grep -oP 'p\K[0-9]')
+    java_cc_file="$JAVA_BENCH_DIR/BenchmarkL${level}.java"
+    [ -f "$java_cc_file" ] || java_cc_file=""
+fi
+if [ -n "$java_cc_file" ] && [ -f "$java_cc_file" ]; then
+    java_cc=$(grep -c "if\|while\|for\|switch\|\?" "$java_cc_file" 2>/dev/null || echo 0)
+fi
 echo ""
 echo "Cyclomatic complexity: HLL=$hll_cc, Java=$java_cc"
 
@@ -99,7 +124,14 @@ echo ""
 echo "Patterns: $pattern (${valid_ok}/47)"
 
 # --- Final score ---
+# Weights (configurable)
+W_CORRECTNESS=${W_CORRECTNESS:-30}
+W_CONCISENESS=${W_CONCISENESS:-25}
+W_ANTIPATTERNS=${W_ANTIPATTERNS:-25}
+W_PATTERNS=${W_PATTERNS:-20}
+
 # Conciseness includes cyclomatic complexity bonus
+cc_bonus=0
 if [ $java_cc -gt 0 ] && [ $hll_cc -lt $java_cc ]; then
     cc_bonus=$(( (java_cc - hll_cc) * 100 / java_cc ))
     conciseness_with_cc=$(( (conciseness + cc_bonus) / 2 ))
@@ -107,12 +139,21 @@ else
     conciseness_with_cc=$conciseness
 fi
 
-score=$(( correctness * 30 / 100 + conciseness_with_cc * 25 / 100 + antipattern * 25 / 100 + pattern * 25 / 100 ))
+score=$(( correctness * W_CORRECTNESS / 100 + conciseness_with_cc * W_CONCISENESS / 100 + antipattern * W_ANTIPATTERNS / 100 + pattern * W_PATTERNS / 100 ))
 echo ""
 echo "================================"
 echo "SCORE: $score / 100"
 echo "================================"
-echo "  Correctness (30%): $correctness"
-echo "  Conciseness (25%): $conciseness_with_cc (LOC=$conciseness, CC bonus=$cc_bonus)"
-echo "  Antipatterns (25%): $antipattern"
-echo "  Patterns (25%):     $pattern"
+echo "  Correctness ($W_CORRECTNESS%): $correctness"
+echo "  Conciseness ($W_CONCISENESS%): $conciseness_with_cc (LOC=$conciseness, CC bonus=$cc_bonus)"
+echo "  Antipatterns ($W_ANTIPATTERNS%): $antipattern"
+echo "  Patterns ($W_PATTERNS%):     $pattern"
+echo ""
+echo "--- Raw values ---"
+echo "  valid_ok=$valid_ok valid_total=$valid_total"
+echo "  invalid_ok=$invalid_ok invalid_total=$invalid_total"
+echo "  hll_loc=$hll_loc java_loc=$java_loc"
+echo "  hll_cc=$hll_cc java_cc=$java_cc"
+echo ""
+echo "--- Weights (override with env vars) ---"
+echo "  W_CORRECTNESS=$W_CORRECTNESS W_CONCISENESS=$W_CONCISENESS W_ANTIPATTERNS=$W_ANTIPATTERNS W_PATTERNS=$W_PATTERNS"

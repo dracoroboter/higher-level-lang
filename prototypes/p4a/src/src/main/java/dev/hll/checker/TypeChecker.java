@@ -158,6 +158,8 @@ public class TypeChecker {
         for (var decl : program.declarations()) {
             if (decl instanceof ImportDecl id && id.mappings().isEmpty()) {
                 String importPath = id.path();
+                // Skip stdlib imports (hll.*)
+                if (importPath.startsWith("hll.")) continue;
                 // Extract module and symbol: "auth.AuthService" → module="auth", symbol="AuthService"
                 String importModule = importPath.contains(".") ? importPath.substring(0, importPath.lastIndexOf('.')) : importPath;
                 String symbol = importPath.contains(".") ? importPath.substring(importPath.lastIndexOf('.') + 1) : "";

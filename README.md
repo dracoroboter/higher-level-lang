@@ -18,15 +18,24 @@ Secondary questions:
 
 | Proto | Nickname | Hypothesis | Score | Status |
 |---|---|---|---|---|
-| p1 | "null train" | Null safety + nominal types + Demeter | 28 | 🏚️ Retired |
-| p2a | "result chain" | Errors as values (Result + ?) | 44 | 🏚️ Retired |
-| p2b | "effect" | Algebraic effects | 43 | 🏚️ Retired |
-| p2c | "checked simple" | Improved checked exceptions | 45 | ✅ Winner L2 |
-| p3a | "state strict" | Typestate with mandatory rebinding | 55 | ✅ Working |
-| p3b | "state light" | Typestate with in-place mutation | 54 | ✅ Winner L3 |
-| p4a | "module" | Module system + DI + DAG deps | 49 | ✅ Working |
+| p1 | "null train" | Null safety + nominal types + Demeter | — | 🏚️ Retired |
+| p2a | "result chain" | Errors as values (Result + ?) | — | 🏚️ Retired |
+| p2b | "effect" | Algebraic effects | — | 🏚️ Retired |
+| p2c | "checked simple" | Improved checked exceptions | 40 | ✅ Winner L2 |
+| p3a | "state strict" | Typestate with mandatory rebinding | 52 | ✅ Working |
+| p3b | "state light" | Typestate with in-place mutation | 49 | ✅ Winner L3 |
+| p4a | "module" | Module system + DI + DAG deps | 46 | ✅ Working |
 
-Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
+Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100. Weights configurable via env vars.
+
+#### Raw metrics
+
+| Proto | Correct | Concise | CC bonus | Antipatterns | Patterns | Valid | Invalid | HLL LOC | Java LOC |
+|---|---|---|---|---|---|---|---|---|---|
+| p2c | 100% | 25 | 0 | 19% (9/46) | 4% (2/47) | 2/2 | 9/9 | 72 | 95 |
+| p3a | 100% | 61 | 100 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
+| p3b | 100% | 48 | 75 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
+| p4a | 100% | 27 | 0 | 36% (17/46) | 6% (3/47) | 3/3 | 17/17 | 77 | 105 |
 
 ### Prototype Intents
 
