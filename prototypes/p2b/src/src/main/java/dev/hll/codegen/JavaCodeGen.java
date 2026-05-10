@@ -24,6 +24,7 @@ public class JavaCodeGen {
                 case StructDecl sd -> generateStruct(sd);
                 case FnDecl fd -> generateFn(fd);
                 case ImportDecl id -> generateImport(id);
+                case TestDecl td -> {} // tests not generated in Java output
             }
         }
 
@@ -134,6 +135,8 @@ public class JavaCodeGen {
                 }
                 emit("}");
             }
+            case AssertStmt as -> emit("assert " + generateExpr(as.condition()) + ";");
+            case ExpectErrorStmt ee -> {} // not generated
         }
     }
 

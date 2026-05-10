@@ -39,6 +39,7 @@ public class TypeChecker {
                 case StructDecl sd -> structs.put(sd.name(), sd);
                 case FnDecl fd -> functions.put(fd.name(), fd);
                 case ImportDecl id -> imports.put(id.alias(), id);
+                case TestDecl td -> {}
             }
         }
 
@@ -58,7 +59,7 @@ public class TypeChecker {
         checkBlock(fn.body(), scope, fn.name());
     }
 
-    private void checkBlock(Block block, Map<String, TypeExpr> scope, String context) {
+    public void checkBlock(Block block, Map<String, TypeExpr> scope, String context) {
         for (var stmt : block.statements()) {
             checkStatement(stmt, scope, context);
         }
@@ -88,6 +89,8 @@ public class TypeChecker {
             }
             case ExprStmt es -> inferType(es.expr(), scope, context);
             case MatchStmt ms -> checkMatch(ms, scope, context);
+            case AssertStmt as -> inferType(as.condition(), scope, context);
+            case ExpectErrorStmt ee -> {}
             case IfStmt is -> {
                 inferType(is.condition(), scope, context);
                 checkBlock(is.thenBlock(), new HashMap<>(scope), context);

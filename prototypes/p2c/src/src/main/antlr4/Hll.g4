@@ -12,6 +12,7 @@ declaration
     | structDecl
     | fnDecl
     | importDecl
+    | testDecl
     ;
 
 // --- Type declarations ---
@@ -64,6 +65,9 @@ importDecl
     | 'import' qualifiedName 'as' IDENT
     ;
 
+testDecl
+    : 'test' STRING block
+    ;
 qualifiedName
     : IDENT ('.' IDENT)*
     ;
@@ -88,6 +92,8 @@ statement
     | whileStmt
     | assignStmt
     | ifStmt
+    | assertStmt
+    | expectErrorStmt
     | exprStmt
     ;
 
@@ -125,6 +131,13 @@ whileStmt
     : 'while' expr block
     ;
 
+assertStmt
+    : 'assert' expr
+    ;
+
+expectErrorStmt
+    : 'expect_error' block
+    ;
 assignStmt
     : IDENT '=' expr
     ;

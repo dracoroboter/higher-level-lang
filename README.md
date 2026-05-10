@@ -14,14 +14,59 @@ Secondary questions:
 
 **Phase:** Prototyping (feasibility study)
 
-Four prototype compilers exist, each testing different hypotheses about error handling:
+### Prototype Scores
 
-| Prototype | Nickname | Hypothesis | Status |
-|---|---|---|---|
-| p1 | "null train" | Null safety + nominal types + Demeter | ✅ Working |
-| p2a | "result chain" | Errors as values (Result + ?) | ✅ Working |
-| p2b | "effect" | Algebraic effects | ✅ Working |
-| p2c | "checked simple" | Improved checked exceptions | ✅ Working |
+| Proto | Nickname | Hypothesis | Score | Status |
+|---|---|---|---|---|
+| p1 | "null train" | Null safety + nominal types + Demeter | 28 | ✅ Working |
+| p2a | "result chain" | Errors as values (Result + ?) | 35 | ✅ Working |
+| p2b | "effect" | Algebraic effects | 36 | ✅ Working |
+| p2c | "checked simple" | Improved checked exceptions | 30 | ✅ Working |
+
+Score = weighted average of: correctness (30%), conciseness (25%), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
+
+### Prototype Intents
+
+**p1 "null train"** (root)
+> The most common bugs (NPE, swapped parameters, unsafe access chains) are eliminable at compile-time with two simple mechanisms: no null with mandatory Option, and nominal types that distinguish data by meaning, not representation.
+
+**p2a "result chain"** (parent: p1)
+> Errors are values, not a separate control flow. A function that can fail declares it in the return type (Result<T, E>). The caller sees the error in the type and must handle or propagate it explicitly. No implicit exceptions, no empty catches, no ignored errors.
+
+**p2b "effect"** (parent: p1)
+> Functions declare which effects they can have (fail, IO, log), but don't decide how to handle them. The caller decides the strategy (retry, fallback, abort). This separates "what can go wrong" from "what to do when it goes wrong".
+
+**p2c "checked simple"** (parent: p1)
+> Java's checked exceptions were the right idea with the wrong execution. Remove `throws Exception`, remove empty catches, make the syntax lightweight, and the model works. The function declares `fails E` — the caller must handle with an inline handler or propagate.
+
+### Development Loop
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. INTENT: write hypothesis + expected antipatterns     │
+│                                                         │
+│  2. JAVA BENCHMARK: write/extend the Java reference     │
+│     with the antipatterns this level should eliminate    │
+│                                                         │
+│  3. IMPLEMENT: grammar + type checker + tests           │
+│                                                         │
+│  4. SCORE: run benchmarks, calculate score              │
+│                                                         │
+│  5. COMPARE: rank prototypes at same level              │
+│                                                         │
+│  6. CHOOSE: pick winner(s) as parent for next level     │
+│                                                         │
+│  7. DERIVE: new intent for next level, loop to 1        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- A prototype inherits the **capabilities** (not necessarily the code) of its parents
+- Multiple parents allowed (DAG, not tree) — merge of ideas from different lines
+- Score is calculated against the full database (46 antipatterns + 47 patterns)
+- Prototypes at the same level compete on the same benchmark
+- After 5+ prototypes exist, lower-level ones are retired from testing
+- Winner of each level becomes the base hypothesis for the next level
 
 All prototypes:
 - Parse and type-check benchmark programs

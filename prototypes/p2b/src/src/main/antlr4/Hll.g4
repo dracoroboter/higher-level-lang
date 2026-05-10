@@ -13,6 +13,7 @@ declaration
     | effectDecl
     | fnDecl
     | importDecl
+    | testDecl
     ;
 
 // --- Type declarations ---
@@ -70,6 +71,9 @@ importDecl
     | 'import' qualifiedName 'as' IDENT
     ;
 
+testDecl
+    : 'test' STRING block
+    ;
 qualifiedName
     : IDENT ('.' IDENT)*
     ;
@@ -94,6 +98,8 @@ statement
     | ifStmt
     | whileStmt
     | assignStmt
+    | assertStmt
+    | expectErrorStmt
     | exprStmt
     ;
 
@@ -127,6 +133,13 @@ whileStmt
     : 'while' expr block
     ;
 
+assertStmt
+    : 'assert' expr
+    ;
+
+expectErrorStmt
+    : 'expect_error' block
+    ;
 assignStmt
     : IDENT '=' expr
     ;

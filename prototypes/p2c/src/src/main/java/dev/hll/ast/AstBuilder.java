@@ -65,14 +65,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
         Optional<Node.TypeExpr> returnType = ctx.typeExpr() != null
                 ? Optional.of(buildTypeExpr(ctx.typeExpr()))
                 : Optional.empty();
-        List<String> fails = List.of();
+        List<String> effects = List.of();
         if (ctx.failsClause() != null) {
-            fails = ctx.failsClause().IDENT().stream()
+            effects = ctx.failsClause().IDENT().stream()
                     .map(t -> t.getText())
                     .collect(Collectors.toList());
         }
         Node.Block body = buildBlock(ctx.block());
-        return new Node.FnDecl(name, params, returnType, fails, body);
+        return new Node.FnDecl(name, params, returnType, effects, body);
     }
 
     @Override
@@ -137,6 +137,25 @@ public class AstBuilder extends HllBaseVisitor<Object> {
         Node.Expr cond = (Node.Expr) visit(ctx.expr());
         Node.Block body = buildBlock(ctx.block());
         return new Node.ExprStmt(new Node.FnCall("__while__", List.of(cond)));
+    }
+
+    @Override
+    public Object visitTestDecl(HllParser.TestDeclContext ctx) {
+        String desc = ctx.STRING().getText().replace("\"", "");
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.TestDecl(desc, body);
+    }
+
+    @Override
+    public Object visitAssertStmt(HllParser.AssertStmtContext ctx) {
+        Node.Expr cond = (Node.Expr) visit(ctx.expr());
+        return new Node.AssertStmt(cond);
+    }
+
+    @Override
+    public Object visitExpectErrorStmt(HllParser.ExpectErrorStmtContext ctx) {
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.ExpectErrorStmt(body);
     }
 
     @Override
@@ -295,7 +314,8 @@ public class AstBuilder extends HllBaseVisitor<Object> {
                     return new Node.MatchArm(pattern, body);
                 })
                 .collect(Collectors.toList());
-        return new Node.FnCall("__match__", List.of(subject)); // simplified for now
+        // Return as FnCall with arms encoded — type checker will inspect
+        return new Node.FnCall("__match__" + arms.size(), List.of(subject));
     }
 
     @Override

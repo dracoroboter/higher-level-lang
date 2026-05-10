@@ -1,0 +1,60 @@
+// Compiler test suite for p2a
+// Run with: hll compiler_tests.hll --test
+
+import hll.validation as validate
+
+type Email = String where validate.email()
+type URL = String where validate.url()
+type Query = String
+
+struct Address {
+    String city
+}
+
+struct Customer {
+    String name,
+    Email email,
+    Option<Address> address
+}
+
+function send(Email to, URL link) {
+    println(to)
+}
+
+function execute(Query sql) {
+    println(sql)
+}
+
+test "null does not exist" {
+    expect_error {
+        let Customer c = null
+    }
+}
+
+test "cannot access Option without match" {
+    expect_error {
+        let Customer c = Customer("Alice", Email("a@b.com"), None)
+        c.address.city
+    }
+}
+
+test "nominal types are not interchangeable" {
+    expect_error {
+        let Email e = Email("a@b.com")
+        let URL u = URL("https://x.com")
+        send(u, e)
+    }
+}
+
+test "SQL injection prevented" {
+    expect_error {
+        let input = "Robert'; DROP TABLE users;--"
+        execute(input)
+    }
+}
+
+test "raw String rejected where Email expected" {
+    expect_error {
+        send("not-an-email", URL("https://x.com"))
+    }
+}
