@@ -11,10 +11,9 @@ public class TypeChecker {
     private final Map<String, Node.WhereConstraint> typeConstraints = new HashMap<>();
     private final Map<String, StructDecl> structs = new HashMap<>();
     private final Map<String, FnDecl> functions = new HashMap<>();
-    private final Map<String, ImportDecl> imports = new HashMap<>();
-    private final Set<String> effectTypes = new HashSet<>();
     private final Map<String, Node.StateDecl> stateTypes = new HashMap<>();
     private final Map<String, String> varStates = new HashMap<>();
+    private final Map<String, ImportDecl> imports = new HashMap<>();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -39,17 +38,11 @@ public class TypeChecker {
                     typeAliases.put(td.name(), new TypeExpr(td.baseType(), Optional.empty()));
                     td.constraint().ifPresent(c -> typeConstraints.put(td.name(), c));
                 }
-                case StructDecl sd -> {
-                    if (sd.name().startsWith("__effect__")) {
-                        effectTypes.add(sd.name().substring("__effect__".length()));
-                    } else {
-                        structs.put(sd.name(), sd);
-                    }
-                }
+                case StructDecl sd -> structs.put(sd.name(), sd);
                 case FnDecl fd -> functions.put(fd.name(), fd);
                 case ImportDecl id -> imports.put(id.alias(), id);
                 case StateDecl sd -> stateTypes.put(sd.name(), sd);
-                case TestDecl td -> {}
+                case TestDecl td -> {} // tests handled separately in --test mode
             }
         }
 
@@ -70,7 +63,7 @@ public class TypeChecker {
         checkBlock(fn.body(), scope, fn.name());
     }
 
-    public void checkBlock(Block block, Map<String, TypeExpr> scope, String context) {
+    public void checkBlock(Block block, java.util.Map<String, TypeExpr> scope, String context) {
         for (var stmt : block.statements()) {
             checkStatement(stmt, scope, context);
         }
@@ -81,24 +74,6 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
-                // Track state type: if value is TypeName.new(), register as state variable
-                if (ls.value() instanceof MethodCall mc && mc.method().equals("new") && mc.object() instanceof Identifier typeId) {
-                    if (stateTypes.containsKey(typeId.name())) {
-                        scope.put(ls.name(), new TypeExpr(typeId.name(), java.util.Optional.empty()));
-                        varStates.put(ls.name(), stateTypes.get(typeId.name()).variants().get(0).stateName());
-                    }
-                }
-                // Check: effectful function assigned without handle
-                if (ls.value() instanceof FnCall fc) {
-                    var calledFn = functions.get(fc.name());
-                    var callerFn = functions.get(context);
-                    if (calledFn != null && !calledFn.effects().isEmpty()) {
-                        boolean callerPropagates = callerFn != null && callerFn.effects().containsAll(calledFn.effects());
-                        if (!callerPropagates) {
-                            errors.add("Function '" + fc.name() + "' has effects " + calledFn.effects() + " that are not handled. Use 'handle' to manage effects. In: " + context);
-                        }
-                    }
-                }
             }
             case ReturnStmt rs -> {
                 if (rs.value().isPresent()) {
@@ -106,22 +81,25 @@ public class TypeChecker {
                 }
             }
             case ExprStmt es -> {
-                inferType(es.expr(), scope, context);
-                if (es.expr() instanceof FnCall fc) {
-                    var fn = functions.get(fc.name());
-                    if (fn != null && !fn.effects().isEmpty()) {
-                        errors.add("Function '" + fc.name() + "' has effects " + fn.effects() + " that are not handled. Use 'handle' to manage effects. In: " + context);
-                    }
+                var exprType = inferType(es.expr(), scope, context);
+                // Check: Result must not be ignored
+                if (exprType != null && exprType.name().equals("Result")) {
+                    errors.add("Result of function call is not consumed. Must handle with match or assign to variable. In: " + context);
                 }
             }
             case MatchStmt ms -> checkMatch(ms, scope, context);
-            case AssertStmt as -> inferType(as.condition(), scope, context);
-            case ExpectErrorStmt ee -> {}
             case IfStmt is -> {
                 inferType(is.condition(), scope, context);
                 checkBlock(is.thenBlock(), new HashMap<>(scope), context);
                 is.elseBlock().ifPresent(b -> checkBlock(b, new HashMap<>(scope), context));
             }
+            case AssertStmt as -> inferType(as.condition(), scope, context);
+            case ExpectErrorStmt ee -> {}
+            case WhileStmt ws -> {
+                inferType(ws.condition(), scope, context);
+                checkBlock(ws.body(), scope, context);
+            }
+            case AssignStmt as2 -> inferType(as2.value(), scope, context); // handled in test runner, not here
         }
     }
 
@@ -138,6 +116,27 @@ public class TypeChecker {
                 errors.add("Non-exhaustive match on Option in '" + context + "': must handle both Some and None");
             }
         }
+        // Check: match on Result must handle both Ok and Err
+        if (subjectType != null && subjectType.name().equals("Result")) {
+            boolean hasOk = false, hasErr = false;
+            for (var arm : ms.arms()) {
+                if (arm.pattern() instanceof SomePattern sp) {
+                    if (sp.binding() != null) {
+                        // Check pattern name from the text
+                    }
+                }
+                if (arm.pattern() instanceof WildcardPattern) { hasOk = true; hasErr = true; }
+            }
+            // Simple heuristic: check if arms mention Ok and Err patterns
+            String matchText = ms.arms().stream()
+                    .map(a -> a.pattern().toString())
+                    .reduce("", (a, b) -> a + " " + b);
+            hasOk = matchText.contains("Ok") || matchText.contains("Wildcard");
+            hasErr = matchText.contains("Err") || matchText.contains("Wildcard");
+            if (!hasOk || !hasErr) {
+                errors.add("Non-exhaustive match on Result in '" + context + "': must handle both Ok and Err");
+            }
+        }
     }
 
     private TypeExpr inferType(Expr expr, Map<String, TypeExpr> scope, String context) {
@@ -145,7 +144,6 @@ public class TypeChecker {
     }
 
     private TypeExpr inferType(Expr expr, Map<String, TypeExpr> scope, String context, int chainDepth) {
-        if (expr == null) return null;
         switch (expr) {
             case Identifier id -> {
                 if (id.name().equals("null")) {
@@ -182,14 +180,12 @@ public class TypeChecker {
                     warnings.add("Law of Demeter: chain depth " + newDepth + " exceeds max " + maxChainDepth + " in '" + context + "'");
                 }
                 inferType(mc.object(), scope, context, newDepth);
-                // State checking: if object is a state variable, verify method is available
                 if (mc.object() instanceof Identifier objId) {
                     String varName = objId.name();
                     var varType = scope.get(varName);
                     if (varType != null && stateTypes.containsKey(varType.name())) {
                         var stateDecl = stateTypes.get(varType.name());
                         String currentState = varStates.getOrDefault(varName, stateDecl.variants().get(0).stateName());
-                        // Find current state variant
                         var currentVariant = stateDecl.variants().stream()
                                 .filter(v -> v.stateName().equals(currentState))
                                 .findFirst().orElse(null);
@@ -200,7 +196,6 @@ public class TypeChecker {
                             if (method == null) {
                                 errors.add("Method '" + mc.method() + "' is not available in state '" + currentState + "' of " + varType.name() + ". In: " + context);
                             } else {
-                                // Transition to target state
                                 varStates.put(varName, method.targetState());
                             }
                         }
@@ -209,7 +204,37 @@ public class TypeChecker {
                 return null;
             }
 
+            case MatchExpr me -> {
+                var subjectType = inferType(me.subject(), scope, context);
+                // Check exhaustiveness
+                if (subjectType != null && subjectType.name().equals("Result") && me.arms().size() < 2) {
+                    errors.add("Non-exhaustive match on Result in '" + context + "': must handle both Ok and Err");
+                }
+                if (subjectType != null && subjectType.isOption() && me.arms().size() < 2) {
+                    errors.add("Non-exhaustive match on Option in '" + context + "': must handle both Some and None");
+                }
+                return null;
+            }
+
             case FnCall fc -> {
+                // Check match exhaustiveness on Result
+                if (fc.name().startsWith("__match__")) {
+                    int armCount = Integer.parseInt(fc.name().substring("__match__".length()));
+                    if (!fc.args().isEmpty()) {
+                        var subjectType = inferType(fc.args().get(0), scope, context);
+                        if (subjectType != null && subjectType.name().equals("Result") && armCount < 2) {
+                            errors.add("Non-exhaustive match on Result in '" + context + "': must handle both Ok and Err");
+                        }
+                        if (subjectType != null && subjectType.isOption() && armCount < 2) {
+                            errors.add("Non-exhaustive match on Option in '" + context + "': must handle both Some and None");
+                        }
+                    }
+                    return null;
+                }
+                // Builtins
+                if (fc.name().equals("printLn") || fc.name().equals("parseInt")) {
+                    return null; // builtins, no type check needed
+                }
                 // Check nominal type constraints
                 var fn = functions.get(fc.name());
                 if (fn != null && fc.args().size() == fn.params().size()) {

@@ -24,6 +24,7 @@ public sealed interface Node {
     record FnDecl(String name, List<Param> params, Optional<TypeExpr> returnType, List<String> effects, Block body) implements Declaration {}
 
     record ImportDecl(String javaClass, String alias, List<JavaMapping> mappings) implements Declaration {}
+
     record TestDecl(String description, Block body) implements Declaration {}
 
     record JavaMapping(String name, List<Param> params, TypeExpr returnType) implements Node {}
@@ -50,7 +51,13 @@ public sealed interface Node {
     record MatchStmt(Expr subject, List<MatchArm> arms) implements Statement {}
 
     record IfStmt(Expr condition, Block thenBlock, Optional<Block> elseBlock) implements Statement {}
+
+    record WhileStmt(Expr condition, Block body) implements Statement {}
+
+    record AssignStmt(String name, Expr value) implements Statement {}
+
     record AssertStmt(Expr condition) implements Statement {}
+
     record ExpectErrorStmt(Block body) implements Statement {}
 
     record MatchArm(Pattern pattern, Expr body) implements Node {}
@@ -88,4 +95,6 @@ public sealed interface Node {
     record UnaryOp(String op, Expr operand) implements Expr {}
 
     record BlockExpr(Block block) implements Expr {}
+
+    record MatchExpr(Expr subject, List<MatchArm> arms) implements Expr {}
 }
