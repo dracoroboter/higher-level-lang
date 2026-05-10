@@ -42,6 +42,21 @@ snellezza = max(0, 100 - ((loc_hll / loc_java) * 100))
 Se HLL richiede meno LOC di Java → punteggio alto.
 Se HLL richiede più LOC di Java → punteggio basso (anche negativo, clampato a 0).
 
+### Ceremony ratio (sotto-metrica per spareggi)
+
+Quando due prototipi hanno le stesse LOC ma verbosità diversa, si usa il ceremony ratio:
+```
+ceremony = (token_body_A - token_body_B) / token_body_B * 100
+```
+
+Misura i token extra (boilerplate) che un prototipo richiede rispetto all'altro per la stessa logica. Utile per discriminare sintassi diverse (es. rebinding vs mutazione in-place).
+
+Esempio misurato (13 transizioni di stato):
+- p3b (mutazione in-place): 18 token → baseline
+- p3a (rebinding obbligatorio): 57 token → +216% ceremony
+
+Il ceremony ratio si usa come criterio di spareggio quando lo score è identico.
+
 Misure aggiuntive (media pesata):
 ```
 snellezza = (loc_ratio * 0.5) + (annotation_ratio * 0.3) + (nesting_ratio * 0.2)

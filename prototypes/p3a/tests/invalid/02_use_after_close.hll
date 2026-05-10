@@ -1,0 +1,19 @@
+// MUST BE REJECTED: send after disconnect
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send() -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    let conn = conn.connect()
+    let conn = conn.disconnect()
+    let conn = conn.send()  // ERROR: send not available in state Closed
+}

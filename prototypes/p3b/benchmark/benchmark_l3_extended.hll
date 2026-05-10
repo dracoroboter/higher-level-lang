@@ -1,0 +1,35 @@
+// Benchmark L3 extended — many state transitions to measure ceremony
+// p3b "state light" version (mutation in-place)
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send() -> Connected
+        function beginTransaction() -> InTransaction
+        function disconnect() -> Closed
+    }
+    InTransaction {
+        function execute() -> InTransaction
+        function commit() -> Connected
+        function rollback() -> Connected
+    }
+    Closed { }
+}
+
+function processOrders(Connection conn) {
+    conn.connect()
+    conn.send()
+    conn.beginTransaction()
+    conn.execute()
+    conn.execute()
+    conn.execute()
+    conn.commit()
+    conn.send()
+    conn.beginTransaction()
+    conn.execute()
+    conn.rollback()
+    conn.send()
+    conn.disconnect()
+}

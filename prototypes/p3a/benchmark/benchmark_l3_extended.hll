@@ -1,0 +1,35 @@
+// Benchmark L3 extended — many state transitions to measure ceremony
+// p3a "state strict" version (mandatory rebinding)
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send() -> Connected
+        function beginTransaction() -> InTransaction
+        function disconnect() -> Closed
+    }
+    InTransaction {
+        function execute() -> InTransaction
+        function commit() -> Connected
+        function rollback() -> Connected
+    }
+    Closed { }
+}
+
+function processOrders(Connection conn) {
+    let conn = conn.connect()
+    let conn = conn.send()
+    let conn = conn.beginTransaction()
+    let conn = conn.execute()
+    let conn = conn.execute()
+    let conn = conn.execute()
+    let conn = conn.commit()
+    let conn = conn.send()
+    let conn = conn.beginTransaction()
+    let conn = conn.execute()
+    let conn = conn.rollback()
+    let conn = conn.send()
+    let conn = conn.disconnect()
+}

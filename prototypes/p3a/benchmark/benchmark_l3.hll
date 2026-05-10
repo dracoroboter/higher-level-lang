@@ -1,0 +1,27 @@
+// Benchmark L3 — p3a "state strict"
+// Same as p3b but with mandatory rebinding (ownership/move semantics)
+//
+// Every state transition consumes the old value and produces a new one.
+// The programmer must rebind: let conn = conn.connect()
+
+import hll.validation as validate
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send(String data) -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    let conn = conn.connect()
+    let conn = conn.send("hello")
+    let conn = conn.send("world")
+    let conn = conn.disconnect()
+    printLn("done")
+}

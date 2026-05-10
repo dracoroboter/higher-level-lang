@@ -1,0 +1,17 @@
+// MUST BE REJECTED: send before connect
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send() -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    let conn = conn.send()  // ERROR: send not available in state Disconnected
+}
