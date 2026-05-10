@@ -23,7 +23,7 @@ struct Order {
     customer: Customer
 }
 
-fn shipping_city(order: Order) -> CityName {
+fn shippingCity(order: Order) -> CityName {
     match order.customer.address {
         Some(addr) => addr.city
         None => CityName("Unknown")
@@ -32,6 +32,6 @@ fn shipping_city(order: Order) -> CityName {
 
 fn main() {
     let order = Order(OrderId(1), Customer("Alice", Email("alice@example.com"), None))
-    let city = shipping_city(order)
-    println(city)
+    let city = shippingCity(order)
+    printLn(city)
 }

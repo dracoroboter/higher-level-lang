@@ -25,7 +25,7 @@ function factorial(Int n) -> Int {
     return result
 }
 
-function is_prime(Int n) -> Bool {
+function isPrime(Int n) -> Bool {
     if n < 2 { return false }
     let mut i = 2
     while i * i <= n {
@@ -47,14 +47,14 @@ function gcd(Int a, Int b) -> Int {
 }
 
 function main(List<String> args) {
-    let fib_n = parse_int(args.get(0))
-    let fact_n = parse_int(args.get(1))
-    let prime_n = parse_int(args.get(2))
-    let gcd_a = parse_int(args.get(3))
-    let gcd_b = parse_int(args.get(4))
+    let fibN = parseInt(args.get(0))
+    let factN = parseInt(args.get(1))
+    let primeN = parseInt(args.get(2))
+    let gcdA = parseInt(args.get(3))
+    let gcdB = parseInt(args.get(4))
 
-    println("fib(" + fib_n + ") = " + fibonacci(fib_n))
-    println("fact(" + fact_n + ") = " + factorial(fact_n))
-    println("prime(" + prime_n + ") = " + is_prime(prime_n))
-    println("gcd(" + gcd_a + ", " + gcd_b + ") = " + gcd(gcd_a, gcd_b))
+    printLn("fib(" + fibN + ") = " + fibonacci(fibN))
+    printLn("fact(" + factN + ") = " + factorial(factN))
+    printLn("prime(" + primeN + ") = " + isPrime(primeN))
+    printLn("gcd(" + gcdA + ", " + gcdB + ") = " + gcd(gcdA, gcdB))
 }

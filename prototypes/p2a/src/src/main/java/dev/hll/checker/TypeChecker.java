@@ -195,7 +195,7 @@ public class TypeChecker {
                     return null;
                 }
                 // Builtins
-                if (fc.name().equals("println") || fc.name().equals("parse_int")) {
+                if (fc.name().equals("printLn") || fc.name().equals("parseInt")) {
                     return null; // builtins, no type check needed
                 }
                 // Check nominal type constraints

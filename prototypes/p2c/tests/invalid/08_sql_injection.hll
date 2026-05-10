@@ -3,10 +3,10 @@
 type Query = String
 
 function execute(Query sql) {
-    println(sql)
+    printLn(sql)
 }
 
 function main() {
-    let user_input = "Robert'; DROP TABLE users;--"
-    execute(user_input)  // ERROR: String is not Query
+    let userInput = "Robert'; DROP TABLE users;--"
+    execute(userInput)  // ERROR: String is not Query
 }

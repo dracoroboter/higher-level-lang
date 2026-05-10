@@ -2,12 +2,12 @@
 
 effect InvalidEmail { String input }
 
-function parse_email(String input) -> Email
+function parseEmail(String input) -> Email
     effects { InvalidEmail } {
     raise InvalidEmail(input)
 }
 
 function main() {
-    let email = parse_email("bad")  // ERROR: InvalidEmail effect not handled
-    println(email)
+    let email = parseEmail("bad")  // ERROR: InvalidEmail effect not handled
+    printLn(email)
 }

@@ -19,6 +19,6 @@ struct Order {
     customer: Customer
 }
 
-fn get_zip(order: Order) -> ZipCode {
+fn getZip(order: Order) -> ZipCode {
     order.customer.address.city.zip  // WARNING: catena di 4 livelli
 }

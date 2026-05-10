@@ -6,8 +6,8 @@ type Email = String where validate.email()
 type URL = String where validate.url()
 
 function send_notification(Email to, URL link) {
-    println(to)
-    println(link)
+    printLn(to)
+    printLn(link)
 }
 
 function main() {

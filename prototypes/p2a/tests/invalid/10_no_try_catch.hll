@@ -3,8 +3,8 @@
 
 function main() {
     try {
-        let x = risky_operation()
+        let x = riskyOperation()
     } catch (Exception e) {
-        println("caught")
+        printLn("caught")
     }
 }

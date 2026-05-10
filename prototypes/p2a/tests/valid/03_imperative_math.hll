@@ -25,7 +25,7 @@ function factorial(Int n) -> Int {
     return result
 }
 
-function is_prime(Int n) -> Bool {
+function isPrime(Int n) -> Bool {
     if n < 2 { return false }
     let mut i = 2
     while i * i <= n {
@@ -47,9 +47,9 @@ function gcd(Int a, Int b) -> Int {
 }
 
 function main() {
-    println("fib(10) = " + fibonacci(10))       // 55
-    println("fact(7) = " + factorial(7))         // 5040
-    println("prime(17) = " + is_prime(17))       // true
-    println("prime(15) = " + is_prime(15))       // false
-    println("gcd(48, 18) = " + gcd(48, 18))     // 6
+    printLn("fib(10) = " + fibonacci(10))       // 55
+    printLn("fact(7) = " + factorial(7))         // 5040
+    printLn("prime(17) = " + isPrime(17))       // true
+    printLn("prime(15) = " + isPrime(15))       // false
+    printLn("gcd(48, 18) = " + gcd(48, 18))     // 6
 }

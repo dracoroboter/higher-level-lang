@@ -1,0 +1,40 @@
+// Benchmark L2 simplified — testable end-to-end (codegen → compile → run)
+// Tests: nominal types, Option, match, validation, struct
+
+import hll.validation as validate
+
+type Email = String where validate.email()
+type CityName = String
+
+struct Address {
+    CityName city
+}
+
+struct Customer {
+    String name,
+    Email email,
+    Option<Address> address
+}
+
+function customerCity(Customer c) -> String {
+    match c.address {
+        Some(addr) => addr.city
+        None => "Unknown"
+    }
+}
+
+function main(List<String> args) {
+    let name = args.get(0)
+    let email = Email(args.get(1))
+    let hasAddr = args.get(2) == "true"
+
+    let Option<Address> address = match hasAddr {
+        true => Some(Address(CityName("Milano")))
+        false => None
+    }
+
+    let customer = Customer(name, email, address)
+    printLn("Name: " + customer.name)
+    printLn("Email: " + customer.email)
+    printLn("City: " + customerCity(customer))
+}

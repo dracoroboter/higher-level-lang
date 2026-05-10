@@ -36,11 +36,13 @@ correttezza = ((valid_ok / valid_total) * 50) + ((invalid_rejected / invalid_tot
 
 **Calcolo:**
 ```
-snellezza = max(0, 100 - ((loc_hll / loc_java) * 100))
+loc_conciseness = max(0, 100 - ((loc_hll / loc_java) * 100))
+cc_bonus = max(0, (cc_java - cc_hll) / cc_java * 100)
+conciseness = (loc_conciseness + cc_bonus) / 2
 ```
 
-Se HLL richiede meno LOC di Java → punteggio alto.
-Se HLL richiede più LOC di Java → punteggio basso (anche negativo, clampato a 0).
+Se HLL richiede meno LOC di Java E meno branch → punteggio alto.
+La complessità ciclomatica contribuisce al 50% della snellezza.
 
 ### Ceremony ratio (sotto-metrica per spareggi)
 
@@ -56,6 +58,22 @@ Esempio misurato (13 transizioni di stato):
 - p3a (rebinding obbligatorio): 57 token → +216% ceremony
 
 Il ceremony ratio si usa come criterio di spareggio quando lo score è identico.
+
+### Complessità ciclomatica (sotto-metrica della snellezza)
+
+```
+cyclomatic_hll = conteggio di: if, match, while, for nel benchmark HLL
+cyclomatic_java = conteggio di: if, while, for, switch, ?: nel benchmark Java
+
+cyclomatic_ratio = cyclomatic_hll / cyclomatic_java
+```
+
+Misura quanti branch/decisioni servono per la stessa logica. Un valore < 1 significa che HLL richiede meno decisioni (il linguaggio gestisce i casi internamente). Un valore = 1 significa stessa complessità.
+
+Esempio misurato (benchmark L2 exec):
+- HLL: 4 branch (2 match + 2 if)
+- Java: 5 branch (3 if + 1 ternary + 1 if)
+- Ratio: 0.8 (HLL 20% meno complesso)
 
 Misure aggiuntive (media pesata):
 ```

@@ -42,14 +42,14 @@ struct Order {
 }
 
 // Demeter-safe functions (encapsulated navigation)
-fn customer_city(order: Order) -> String {
+fn customerCity(order: Order) -> String {
     match order.customer.address {
         Some(addr) => addr.city.name
         None => "Unknown"
     }
 }
 
-fn customer_zip(order: Order) -> String {
+fn customerZip(order: Order) -> String {
     match order.customer.address {
         Some(addr) => addr.city.zip
         None => "Unknown"
@@ -57,21 +57,21 @@ fn customer_zip(order: Order) -> String {
 }
 
 fn print_order(order: Order) {
-    println("Order #" + order.id)
-    println("Customer: " + order.customer.name)
-    println("Email: " + order.customer.email)
-    println("Total: " + order.total.amount)
-    println("City: " + customer_city(order))
-    println("Zip: " + customer_zip(order))
+    printLn("Order #" + order.id)
+    printLn("Customer: " + order.customer.name)
+    printLn("Email: " + order.customer.email)
+    printLn("Total: " + order.total.amount)
+    printLn("City: " + customerCity(order))
+    printLn("Zip: " + customerZip(order))
 }
 
 fn main(args: List<String>) {
     let name = args.get(0)
     let email = Email(args.get(1))
     let amount = MoneyAmount(args.get(2))
-    let has_address = args.get(3) == "true"
+    let hasAddress = args.get(3) == "true"
 
-    let address: Option<Address> = match has_address {
+    let address: Option<Address> = match hasAddress {
         true => Some(Address("Via Roma 1", City("Milano", ZipCode("20100")), Country("IT")))
         false => None
     }

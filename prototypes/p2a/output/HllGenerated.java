@@ -27,7 +27,7 @@ public class HllGenerated {
         return result;
     }
     
-    public static boolean is_prime(int n) {
+    public static boolean isPrime(int n) {
         if (n < 2) {
             return false;
         }
@@ -53,15 +53,15 @@ public class HllGenerated {
     }
     
     public static void main(String[] args) {
-        var fib_n = Integer.parseInt(args[0]);
-        var fact_n = Integer.parseInt(args[1]);
-        var prime_n = Integer.parseInt(args[2]);
-        var gcd_a = Integer.parseInt(args[3]);
-        var gcd_b = Integer.parseInt(args[4]);
-        System.out.println("fib(" + fib_n + ") = " + fibonacci(fib_n));
-        System.out.println("fact(" + fact_n + ") = " + factorial(fact_n));
-        System.out.println("prime(" + prime_n + ") = " + is_prime(prime_n));
-        System.out.println("gcd(" + gcd_a + ", " + gcd_b + ") = " + gcd(gcd_a, gcd_b));
+        var fibN = Integer.parseInt(args[0]);
+        var factN = Integer.parseInt(args[1]);
+        var primeN = Integer.parseInt(args[2]);
+        var gcdA = Integer.parseInt(args[3]);
+        var gcdB = Integer.parseInt(args[4]);
+        System.out.println("fib(" + fibN + ") = " + fibonacci(fibN));
+        System.out.println("fact(" + factN + ") = " + factorial(factN));
+        System.out.println("prime(" + primeN + ") = " + isPrime(primeN));
+        System.out.println("gcd(" + gcdA + ", " + gcdB + ") = " + gcd(gcdA, gcdB));
     }
     
 }

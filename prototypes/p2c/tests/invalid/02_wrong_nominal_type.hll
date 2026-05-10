@@ -4,7 +4,7 @@
 type Email = String where matches("^.+@.+$")
 
 function send(Email to) {
-    println(to)
+    printLn(to)
 }
 
 function main() {

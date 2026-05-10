@@ -2,20 +2,15 @@
 
 ## Priorità alta
 
-- [x] **Fix bug NPE p2b** — risolto
-- [x] **Fix parametri scambiati** — risolto per p2a/p2b/p2c
-- [x] **Implementare verifica gestione errori** — p2a: Result consumato + match esaustivo, p2b: effects, p2c: fails + | handler
-- [x] **Fix codegen** — while, assign, if, println, parse_int generano Java corretto. Output identico al reference oracle.
-- [x] **Batteria di test del compilatore** — p2a: 10/10, p2b: 8/8, p2c: 8/8. Copre: null safety, Option access, tipi nominali (scambio, raw String, SQL injection), Result consumed, match exhaustive.
+- [ ] **Naming convention + minimizzare builtin** — applicare camelCase a tutti i file .hll, rimuovere println/parseInt come builtin, sostituire con wrapper Java
+- [ ] **Script di scoring automatico** — `tools/compare/score.sh` che calcola lo score di un prototipo con un comando
+- [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL per scoprire i limiti pratici del linguaggio
+- [ ] **Verificare procedura di loop** — la procedura deve includere esplicitamente il confronto con l'implementazione Java (output identico su input problematici)
 
 ## Priorità media
 
-- [ ] **Naming convention** — decisione presa: **camelCase** per identificatori (come Java). `println` → `printLn` o meglio: nessun builtin di IO nel linguaggio, solo wrapper Java. Le keyword del linguaggio restano lowercase (`function`, `let`, `match`, `type`, `struct`, `while`, `if`, `return`, `test`, `assert`, `expect_error`).
-- [ ] **Minimizzare i builtin** — il linguaggio deve avere il minimo di costrutti nativi. Tutto ciò che non è strettamente necessario diventa libreria HLL o wrapper Java:
-  - `println` → NON è un builtin, è `import java "java.io.PrintStream" as io` poi `io.printLn(...)`
-  - `parse_int` → NON è un builtin, è nella libreria `hll.convert`
-  - Solo keyword sintattiche sono nel linguaggio: `function`, `let`, `type`, `struct`, `match`, `if`, `while`, `return`, `test`, `assert`, `expect_error`, `Option`, `Some`, `None`, `Result`, `Ok`, `Err`, `true`, `false`, `import`, `where`, `mut`
-- [ ] **Unit test e mocking inerenti** — costrutto `mock` per i test. Vedi `doc/08-test-framework.md`.
+- [ ] **Unit test e mocking inerenti** — costrutto `mock` per i test. Vedi `doc/08-test-framework.md`. Dipende dal module system (injection).
+- [ ] **Derivare prototipi livello 4** — p3b è il vincitore. Tema possibile: module system (DAG, injection, service)
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri
 - [ ] **Migliorare ciclo di test** — creare jar eseguibile + script batch (`tools/compare/run_all.sh`)
 - [ ] **Separatore di statement** — decidere `;` opzionale o newline implicito
@@ -24,10 +19,8 @@
 
 ## Priorità bassa
 
-- [ ] **Formalizzare sistema di wrapper** — meccanismo di import/wrapping per librerie esterne. Attualmente solo Java, in futuro estendibile ad altri target (JS, WASM, etc.). Il wrapper deve: convertire null→Option, tipizzare i parametri, gestire eccezioni del target.
+- [ ] **Formalizzare sistema di wrapper** — meccanismo di import/wrapping per librerie esterne. In futuro estendibile ad altri target (JS, WASM, etc.).
 - [ ] **Documentazione multilingua** — uniformare italiano/inglese
-- [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL
-- [ ] **Script di scoring automatico** — implementare `tools/compare/score.sh`
 - [ ] **Copiare codegen fixato a p2b/p2c** — attualmente solo p2a ha il codegen funzionante
 
 ## Prossimo passo (loop di sviluppo)

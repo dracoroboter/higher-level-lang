@@ -4,7 +4,7 @@
 type Email = String where matches("^.+@.+$")
 
 fn send(to: Email) {
-    println(to)
+    printLn(to)
 }
 
 fn main() {

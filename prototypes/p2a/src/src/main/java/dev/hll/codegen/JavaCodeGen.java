@@ -10,6 +10,7 @@ public class JavaCodeGen {
     private final StringBuilder out = new StringBuilder();
     private int indent = 0;
     private final Set<String> typeAliases = new HashSet<>();
+    private final Set<String> structs = new HashSet<>();
     private final Map<String, Node.WhereConstraint> typeConstraints = new HashMap<>();
 
     public String generate(Program program) {
@@ -78,6 +79,7 @@ public class JavaCodeGen {
     }
 
     private void generateStruct(StructDecl sd) {
+        structs.add(sd.name());
         var fields = sd.fields().stream()
                 .map(f -> javaType(f.type()) + " " + f.name())
                 .toList();
@@ -91,8 +93,15 @@ public class JavaCodeGen {
                 .map(p -> javaType(p.type()) + " " + p.name())
                 .toList();
 
-        String modifier = fd.name().equals("main") ? "public static" : "public static";
-        String sig = modifier + " " + returnType + " " + fd.name() + "(" + String.join(", ", params) + ")";
+        String modifier = "public static";
+        // Fix main signature for Java
+        String paramStr;
+        if (fd.name().equals("main")) {
+            paramStr = "String[] args";
+        } else {
+            paramStr = String.join(", ", params);
+        }
+        String sig = modifier + " " + returnType + " " + fd.name() + "(" + paramStr + ")";
         emit(sig + " {");
         indent++;
         generateBlock(fd.body());
@@ -178,17 +187,32 @@ public class JavaCodeGen {
             case FloatLit fl -> String.valueOf(fl.value());
             case BoolLit bl -> String.valueOf(bl.value());
             case FieldAccess fa -> generateExpr(fa.object()) + "." + fa.field() + "()";
-            case MethodCall mc -> generateExpr(mc.object()) + "." + mc.method() + "(" +
-                    mc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
+            case MethodCall mc -> {
+                String obj = generateExpr(mc.object());
+                String mArgs = mc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
+                // args.get(N) → args[N] for main args
+                if (mc.method().equals("get") && obj.equals("args")) {
+                    yield "args[" + mArgs + "]";
+                }
+                yield obj + "." + mc.method() + "(" + mArgs + ")";
+            }
             case FnCall fc -> {
-                if (typeAliases.contains(fc.name())) {
+                if (typeAliases.contains(fc.name()) || structs.contains(fc.name())) {
                     yield "new " + fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
+                }
+                // Match expression placeholder — generate ternary or if/else
+                if (fc.name().startsWith("__match__")) {
+                    // Simplified: for boolean match (true/false), generate ternary
+                    String subject = fc.args().isEmpty() ? "null" : generateExpr(fc.args().get(0));
+                    yield subject; // fallback — full match codegen needs more context
                 }
                 // Builtins
                 String args = fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
                 yield switch (fc.name()) {
-                    case "println" -> "System.out.println(" + args + ")";
-                    case "parse_int" -> "Integer.parseInt(" + args + ")";
+                    case "printLn" -> "System.out.println(" + args + ")";
+                    case "parseInt" -> "Integer.parseInt(" + args + ")";
+                    case "Some" -> "Optional.of(" + args + ")";
+                    case "None" -> "Optional.empty()";
                     default -> fc.name() + "(" + args + ")";
                 };
             }
@@ -196,7 +220,15 @@ public class JavaCodeGen {
                 String inner = generateExpr(op.expr());
                 yield inner + ".isPresent() ? " + inner + ".get() : null /* early return */";
             }
-            case BinaryOp bo -> generateExpr(bo.left()) + " " + bo.op() + " " + generateExpr(bo.right());
+            case BinaryOp bo -> {
+                String left = generateExpr(bo.left());
+                String right = generateExpr(bo.right());
+                // String comparison: == generates .equals() if one side is a string literal
+                if (bo.op().equals("==") && (right.startsWith("\"") || left.startsWith("\""))) {
+                    yield left + ".equals(" + right + ")";
+                }
+                yield left + " " + bo.op() + " " + right;
+            }
             case UnaryOp uo -> uo.op() + generateExpr(uo.operand());
             case BlockExpr be -> "/* block */";
         };

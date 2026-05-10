@@ -15,9 +15,9 @@ type Email = String where validate.email()
 type ZipCode = String where validate.matches("^[0-9]{5}$")
 type MoneyAmount = String where validate.matches("^[0-9]+\\.[0-9]{2}$")
 type Country = String where validate.max_length(2)
-type EvenNumber = Int where is_even()
+type EvenNumber = Int where isEven()
 
-function is_even(Int n) -> Bool { n % 2 == 0 }
+function isEven(Int n) -> Bool { n % 2 == 0 }
 
 // Typed errors
 type ValidationError = InvalidEmail | InvalidAmount | InvalidEven
@@ -34,37 +34,37 @@ struct Money { MoneyAmount amount }
 struct Order { Int id, Customer customer, Money total, String status }
 
 // Validation — returns Result, not null
-function parse_email(String input) -> Result<Email, InvalidEmail> {
+function parseEmail(String input) -> Result<Email, InvalidEmail> {
     match validate.email().check(input) {
         true => Ok(Email(input))
         false => Err(InvalidEmail(input))
     }
 }
 
-function parse_money(String input) -> Result<MoneyAmount, InvalidAmount> {
+function parseMoney(String input) -> Result<MoneyAmount, InvalidAmount> {
     match validate.matches("^[0-9]+\\.[0-9]{2}$").check(input) {
         true => Ok(MoneyAmount(input))
         false => Err(InvalidAmount(input))
     }
 }
 
-function parse_even(String input) -> Result<EvenNumber, InvalidEven> {
-    let n = parse_int(input)?
-    match is_even(n) {
+function parseEven(String input) -> Result<EvenNumber, InvalidEven> {
+    let n = parseInt(input)?
+    match isEven(n) {
         true => Ok(EvenNumber(n))
         false => Err(InvalidEven(input))
     }
 }
 
 // Demeter-safe functions
-function customer_city(Order order) -> String {
+function customerCity(Order order) -> String {
     match order.customer.address {
         Some(addr) => addr.city.name
         None => "Unknown"
     }
 }
 
-function customer_zip(Order order) -> String {
+function customerZip(Order order) -> String {
     match order.customer.address {
         Some(addr) => addr.city.zip
         None => "Unknown"
@@ -72,14 +72,14 @@ function customer_zip(Order order) -> String {
 }
 
 // Order construction — Result chain with ?
-function build_order(List<String> args) -> Result<Order, ValidationError> {
+function buildOrder(List<String> args) -> Result<Order, ValidationError> {
     let name = args.get(0)
-    let email = parse_email(args.get(1))?
-    let amount = parse_money(args.get(2))?
-    let has_address = args.get(3) == "true"
-    let even = parse_even(args.get(4))?
+    let email = parseEmail(args.get(1))?
+    let amount = parseMoney(args.get(2))?
+    let hasAddress = args.get(3) == "true"
+    let even = parseEven(args.get(4))?
 
-    let Option<Address> address = match has_address {
+    let Option<Address> address = match hasAddress {
         true => Some(Address("Via Roma 1", City("Milano", ZipCode("20100")), Country("IT")))
         false => None
     }
@@ -89,18 +89,18 @@ function build_order(List<String> args) -> Result<Order, ValidationError> {
 }
 
 function main(List<String> args) {
-    match build_order(args) {
+    match buildOrder(args) {
         Ok(order) => {
-            println("Order #" + order.id)
-            println("Customer: " + order.customer.name)
-            println("Email: " + order.customer.email)
-            println("Total: " + order.total.amount)
-            println("Even: " + args.get(4))
-            println("City: " + customer_city(order))
-            println("Zip: " + customer_zip(order))
+            printLn("Order #" + order.id)
+            printLn("Customer: " + order.customer.name)
+            printLn("Email: " + order.customer.email)
+            printLn("Total: " + order.total.amount)
+            printLn("Even: " + args.get(4))
+            printLn("City: " + customerCity(order))
+            printLn("Zip: " + customerZip(order))
         }
-        Err(InvalidEmail(e)) => println("ERROR: invalid email")
-        Err(InvalidAmount(e)) => println("ERROR: invalid amount")
-        Err(InvalidEven(e)) => println("ERROR: not an even number")
+        Err(InvalidEmail(e)) => printLn("ERROR: invalid email")
+        Err(InvalidAmount(e)) => printLn("ERROR: invalid amount")
+        Err(InvalidEven(e)) => printLn("ERROR: not an even number")
     }
 }

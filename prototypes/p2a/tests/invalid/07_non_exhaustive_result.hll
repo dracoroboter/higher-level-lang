@@ -3,14 +3,14 @@
 type Email = String where validate.email()
 struct InvalidEmail { String input }
 
-function parse_email(String input) -> Result<Email, InvalidEmail> {
+function parseEmail(String input) -> Result<Email, InvalidEmail> {
     Ok(Email(input))
 }
 
 function main() {
-    let result = parse_email("test@x.com")
+    let result = parseEmail("test@x.com")
     match result {
-        Ok(email) => println(email)
+        Ok(email) => printLn(email)
         // ERROR: missing Err case — non-exhaustive match on Result
     }
 }
