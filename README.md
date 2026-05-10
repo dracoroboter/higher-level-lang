@@ -25,6 +25,8 @@ Secondary questions:
 | p3a | "state strict" | Typestate with mandatory rebinding | 52 | ✅ Working |
 | p3b | "state light" | Typestate with in-place mutation | 49 | ✅ Winner L3 |
 | p4a | "module" | Module system + DI + DAG deps | 54 | ✅ Working |
+| p5a | "iterate classic" | for-in + lambda pipeline | — | 🔲 In progress |
+| p5b | "iterate query" | for-in + when/yield/into (purity enforced) | — | ⚠️ Partial |
 
 Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100. Weights configurable via env vars.
 

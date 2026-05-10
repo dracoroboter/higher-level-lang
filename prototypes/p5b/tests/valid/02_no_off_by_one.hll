@@ -1,0 +1,13 @@
+// VALID: for-in prevents off-by-one — no manual index
+// This file demonstrates that HLL has no way to write an off-by-one bug
+// because there is no index-based loop (no `for i = 0; i < n; i++`)
+module safe_iteration
+
+function main() {
+    let items = List(10, 20, 30)
+
+    // The only way to iterate is for-in — no index, no off-by-one possible
+    for item in items {
+        println(item)
+    }
+}

@@ -1,0 +1,10 @@
+// INVALID: modification during iteration (ConcurrentModification equivalent)
+module concurrent_mod
+
+function main() {
+    let mut orders = List(1, 2, 3)
+
+    for item in orders {
+        orders = List(4, 5)  // ERROR: cannot reassign collection being iterated
+    }
+}

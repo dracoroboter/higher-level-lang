@@ -13,6 +13,8 @@
 
 - [ ] **Risolvere assenza ereditarietà** — 3 problemi aperti: verbosità delega, polimorfismo ad-hoc, interop framework. Vedi `doc/04-bibliografia.md` sezione "Assenza di ereditarietà"
 - [ ] **Concorrenza sicura (Actor Model)** — `spawn` crea attori, `service` = interfaccia attore, stato privato, messaggi immutabili. Blocca Race Condition, Deadlock, Busy Waiting. Vedi `doc/11-concorrenza.md`
+- [ ] **Iterazione (livello 5)** — for-in con clausole dichiarative + lambda per casi complessi. Richiede List<T> e lambda. Vedi `doc/12-iterazione.md`
+- [ ] **Factory non coperti** — investigare Abstract Factory, Factory con stato, Factory con registrazione dinamica (plugin). Vedi `doc/13-factory.md`
 - [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: `expect_fail ErrorType { expr }` per test di errori runtime (non solo compile-time). Vedi Kotlin `assertThrows`, Rust `#[should_panic]`, QuickCheck property-based testing.
 - [x] **Derivare prototipi livello 4** — p4a implementato (score 47). Padri: p3b + p2c. Multi-file compiler.
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri

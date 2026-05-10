@@ -1,0 +1,39 @@
+// Test: for-in with where/yield/into clauses
+module iteration
+
+type OrderId = String
+type Amount = Int
+
+struct Order {
+    OrderId id,
+    Amount amount,
+    String status
+}
+
+function main() {
+    let orders = List(Order(OrderId("O1"), Amount(100), "pending"), Order(OrderId("O2"), Amount(200), "confirmed"))
+
+    // Imperative with where filter
+    for order in orders
+        when order.amount > 150
+    {
+        println(order.id)
+    }
+
+    // Yield produces a new list
+    let bigIds = for order in orders
+        when order.amount > 100
+        yield order.id
+
+    // Into accumulates
+    let total = for order in orders
+        when order.status.equals("confirmed")
+        into sum(order.amount)
+
+    // Take limits
+    for order in orders
+        take 1
+    {
+        println(order.id)
+    }
+}

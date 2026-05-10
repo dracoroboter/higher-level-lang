@@ -1,0 +1,24 @@
+// VALID: correct way to handle I/O in iteration — in the body, not the clause
+module correct_io
+
+export service OrderRepo {
+    function hasDiscount(Int orderId) -> Bool fails IOError
+}
+
+provide OrderRepo {
+    function hasDiscount(Int orderId) -> Bool fails IOError { true }
+}
+
+function main() {
+    let repo = spawn OrderRepo
+    let orderIds = List(1, 2, 3, 4, 5)
+
+    // I/O in the body — explicit, debuggable, visible
+    for id in orderIds {
+        let hasDisc = await repo.hasDiscount(id)
+            | IOError(e) => false
+        if hasDisc {
+            println(id)
+        }
+    }
+}

@@ -1,0 +1,23 @@
+// INVALID: N+1 query hidden in when clause
+module nplus1
+
+export service OrderRepo {
+    function hasDiscount(Int orderId) -> Bool fails IOError
+}
+
+provide OrderRepo {
+    function hasDiscount(Int orderId) -> Bool fails IOError { true }
+}
+
+function main() {
+    let repo = spawn OrderRepo
+    let orderIds = List(1, 2, 3, 4, 5)
+
+    // ERROR: repo.hasDiscount is impure (spawned actor + fails)
+    // This would be an N+1 query — one DB call per element
+    for id in orderIds
+        when repo.hasDiscount(id)
+    {
+        println(id)
+    }
+}

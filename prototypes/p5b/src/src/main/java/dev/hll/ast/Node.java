@@ -68,6 +68,8 @@ public sealed interface Node {
 
     record WhileStmt(Expr condition, Block body) implements Statement {}
 
+    record ForInStmt(String varName, Expr iterable, List<Expr> whenClauses, Optional<Expr> take, Optional<Expr> yieldExpr, Optional<String> intoFn, Optional<Expr> intoArg, Optional<Block> body) implements Statement {}
+
 
     record AssignStmt(String name, Expr value) implements Statement {}
 

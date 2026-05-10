@@ -1,0 +1,19 @@
+// INVALID: function with fails in when clause
+module impurefilter
+
+struct NotFoundError { String message }
+
+function lookup(Int id) -> String fails NotFoundError {
+    fail NotFoundError("not found")
+}
+
+function main() {
+    let ids = List(1, 2, 3)
+
+    // ERROR: lookup has fails — cannot be in when clause
+    for id in ids
+        when lookup(id).equals("found")
+    {
+        println(id)
+    }
+}

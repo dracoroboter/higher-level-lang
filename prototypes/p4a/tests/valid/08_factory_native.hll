@@ -1,0 +1,37 @@
+// Test: Factory Method is native in HLL
+// Case 1: service/provide = polymorphic factory
+// Case 2: type + where = smart constructor (validated creation)
+// Case 3: functions returning types = named constructors
+module factories
+
+// Case 2: Smart constructor — cannot create invalid Email
+type Email = String where validate.email()
+
+// Case 3: Named constructors
+type Color = String
+
+function fromRGB(Int r, Int g, Int b) -> Color {
+    Color(r + "," + g + "," + b)
+}
+
+function fromHex(String hex) -> Color {
+    Color(hex)
+}
+
+// Case 1: Polymorphic factory via service/provide
+export service Logger {
+    function log(String msg) -> Unit
+}
+
+provide Logger {
+    function log(String msg) -> Unit {
+        println(msg)
+    }
+}
+
+function main() {
+    let red = fromRGB(255, 0, 0)
+    let blue = fromHex("#0000FF")
+    println(red)
+    println(blue)
+}

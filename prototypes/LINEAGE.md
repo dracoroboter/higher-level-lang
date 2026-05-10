@@ -12,6 +12,8 @@ p1 "null train" 🏚️ ritirato
 └──→ p2c "checked simple" ← vincitore L2
          │
          └──→ p4a "module" (padri: p3b + p2c)
+              ├──→ p5a "iterate classic" (for-in + lambda)
+              └──→ p5b "iterate query" (for-in + where/yield/into)
 ```
 
 ## Tabella (machine-readable)
@@ -26,6 +28,8 @@ p1 "null train" 🏚️ ritirato
 | p3b | p2b | state light | type-state con ownership solo su state | ✅ vincitore L3 | 49 |
 | p3c | p2b | state runtime | type-state con verifica a runtime | ❌ scartato | — |
 | p4a | p3b, p2c | module | module system + injection + DAG deps | ✅ funzionante | 54 |
+| p5a | p4a | iterate classic | for-in + lambda pipeline (Rust/Kotlin style) | 🔲 da implementare | — |
+| p5b | p4a | iterate query | for-in con clausole SQL-style (purezza enforced) | 🔲 da implementare | — |
 
 ## Come leggere la genealogia
 

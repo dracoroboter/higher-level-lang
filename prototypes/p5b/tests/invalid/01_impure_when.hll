@@ -1,0 +1,21 @@
+// INVALID: I/O in when clause — when must be pure
+module impure
+
+export service Database {
+    function exists(Int id) -> Bool fails IOError
+}
+
+provide Database {
+    function exists(Int id) -> Bool fails IOError { true }
+}
+
+function main() {
+    let db = spawn Database
+    let ids = List(1, 2, 3)
+
+    for id in ids
+        when db.exists(id)
+    {
+        println(id)
+    }
+}
