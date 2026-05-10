@@ -90,7 +90,12 @@ public class TypeChecker {
                 is.elseBlock().ifPresent(b -> checkBlock(b, new HashMap<>(scope), context));
             }
             case AssertStmt as -> inferType(as.condition(), scope, context);
-            case ExpectErrorStmt ee -> {} // handled in test runner, not here
+            case ExpectErrorStmt ee -> {}
+            case WhileStmt ws -> {
+                inferType(ws.condition(), scope, context);
+                checkBlock(ws.body(), scope, context);
+            }
+            case AssignStmt as2 -> inferType(as2.value(), scope, context); // handled in test runner, not here
         }
     }
 
@@ -188,6 +193,10 @@ public class TypeChecker {
                         }
                     }
                     return null;
+                }
+                // Builtins
+                if (fc.name().equals("println") || fc.name().equals("parse_int")) {
+                    return null; // builtins, no type check needed
                 }
                 // Check nominal type constraints
                 var fn = functions.get(fc.name());

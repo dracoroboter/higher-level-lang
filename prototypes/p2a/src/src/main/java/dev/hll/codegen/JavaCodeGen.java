@@ -137,6 +137,14 @@ public class JavaCodeGen {
             }
             case AssertStmt as -> emit("assert " + generateExpr(as.condition()) + ";");
             case ExpectErrorStmt ee -> {} // not generated
+            case WhileStmt ws -> {
+                emit("while (" + generateExpr(ws.condition()) + ") {");
+                indent++;
+                generateBlock(ws.body());
+                indent--;
+                emit("}");
+            }
+            case AssignStmt as2 -> emit(as2.name() + " = " + generateExpr(as2.value()) + ";");
         }
     }
 
@@ -176,7 +184,13 @@ public class JavaCodeGen {
                 if (typeAliases.contains(fc.name())) {
                     yield "new " + fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
                 }
-                yield fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
+                // Builtins
+                String args = fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
+                yield switch (fc.name()) {
+                    case "println" -> "System.out.println(" + args + ")";
+                    case "parse_int" -> "Integer.parseInt(" + args + ")";
+                    default -> fc.name() + "(" + args + ")";
+                };
             }
             case OptionPropagate op -> {
                 String inner = generateExpr(op.expr());

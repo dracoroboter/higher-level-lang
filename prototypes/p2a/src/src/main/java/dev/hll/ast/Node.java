@@ -46,6 +46,10 @@ public sealed interface Node {
 
     record IfStmt(Expr condition, Block thenBlock, Optional<Block> elseBlock) implements Statement {}
 
+    record WhileStmt(Expr condition, Block body) implements Statement {}
+
+    record AssignStmt(String name, Expr value) implements Statement {}
+
     record AssertStmt(Expr condition) implements Statement {}
 
     record ExpectErrorStmt(Block body) implements Statement {}

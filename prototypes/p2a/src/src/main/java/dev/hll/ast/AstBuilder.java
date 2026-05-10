@@ -122,14 +122,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     public Object visitAssignStmt(HllParser.AssignStmtContext ctx) {
         String name = ctx.IDENT().getText();
         Node.Expr value = (Node.Expr) visit(ctx.expr());
-        return new Node.ExprStmt(new Node.BinaryOp(new Node.Identifier(name), "=", value));
+        return new Node.AssignStmt(name, value);
     }
 
     @Override
     public Object visitWhileStmt(HllParser.WhileStmtContext ctx) {
         Node.Expr cond = (Node.Expr) visit(ctx.expr());
         Node.Block body = buildBlock(ctx.block());
-        return new Node.ExprStmt(new Node.FnCall("__while__", List.of(cond)));
+        return new Node.WhileStmt(cond, body);
     }
 
     @Override
