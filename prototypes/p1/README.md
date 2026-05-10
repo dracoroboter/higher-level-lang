@@ -132,11 +132,18 @@ mvn exec:java -Dexec.mainClass=dev.hll.Main \
 
 ## Limiti noti
 
-1. **Import Java non collegato al type checker** — le funzioni importate da Java non sono riconosciute dal type checker, causando falsi positivi sull'operatore `?`
-2. **Codegen incompleto** — il match non genera `return`, i costruttori struct non sono corretti nel Java generato
-3. **Nessun builtin** — `println` e simili non sono definiti
-4. **Single file** — nessun module system, tutto in un file
-5. **Demeter è solo warning** — non errore hard (scelta di design)
+1. **Import Java non collegato al type checker** — le funzioni importate da Java non sono riconosciute dal type checker
+2. **Codegen main signature** — genera `main(List args)` invece di `main(String[] args)` (fix manuale)
+3. **Match-expr codegen** — il match come espressione non genera Java corretto (solo il match come statement in funzioni dedicate)
+4. **Demeter è solo warning** — non errore hard (scelta di design)
+
+## Cosa funziona end-to-end
+
+Il benchmark math dimostra il ciclo completo:
+```
+HLL source → parse → type check → generate Java → compile Java → execute → output = reference ✅
+```
+Output identico al reference oracle su tutti gli input di test.
 
 ## Cosa dimostra
 

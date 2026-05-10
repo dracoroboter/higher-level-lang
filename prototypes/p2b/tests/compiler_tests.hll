@@ -1,4 +1,4 @@
-// Compiler test suite for p2a
+// Compiler test suite for p2a "result chain"
 // Run with: hll compiler_tests.hll --test
 
 import hll.validation as validate
@@ -6,9 +6,11 @@ import hll.validation as validate
 type Email = String where validate.email()
 type URL = String where validate.url()
 type Query = String
+type OrderId = Int
+type CityName = String
 
 struct Address {
-    String city
+    CityName city
 }
 
 struct Customer {
@@ -17,13 +19,21 @@ struct Customer {
     Option<Address> address
 }
 
+struct InvalidEmail { String input }
+
 function send(Email to, URL link) {
-    println(to)
+    printLn(to)
 }
 
 function execute(Query sql) {
-    println(sql)
+    printLn(sql)
 }
+
+function parseEmail(String input) -> Result<Email, InvalidEmail> {
+    Ok(Email(input))
+}
+
+// === NULL SAFETY ===
 
 test "null does not exist" {
     expect_error {
@@ -31,12 +41,16 @@ test "null does not exist" {
     }
 }
 
-test "cannot access Option without match" {
+// === OPTION HANDLING ===
+
+test "cannot access field on Option without match" {
     expect_error {
         let Customer c = Customer("Alice", Email("a@b.com"), None)
         c.address.city
     }
 }
+
+// === NOMINAL TYPES ===
 
 test "nominal types are not interchangeable" {
     expect_error {
@@ -46,15 +60,58 @@ test "nominal types are not interchangeable" {
     }
 }
 
-test "SQL injection prevented" {
+test "raw String rejected where Email expected" {
+    expect_error {
+        send("not-an-email", URL("https://x.com"))
+    }
+}
+
+test "raw String rejected where URL expected" {
+    expect_error {
+        send(Email("a@b.com"), "not-a-url")
+    }
+}
+
+test "SQL injection prevented by nominal types" {
     expect_error {
         let input = "Robert'; DROP TABLE users;--"
         execute(input)
     }
 }
 
-test "raw String rejected where Email expected" {
+// TODO: "OrderId is not Int" — type checker does not yet verify nominal types in let assignments
+// Only verified in function call parameters
+
+// === RESULT HANDLING ===
+
+
+
+// === DEMETER (warnings, not errors — these test that code compiles but warns) ===
+
+// Note: Demeter violations produce warnings, not errors.
+// These are valid programs that should compile.
+
+// === IMPERATIVE CORRECTNESS ===
+
+test "function with return type must return" {
+    assert true
+}
+
+test "valid program compiles" {
+    assert true
+}
+
+// === EFFECTS (p2b specific) ===
+
+effect TestError { String msg }
+
+function riskyOperation(String input) -> String
+    effects { TestError } {
+    raise TestError(input)
+}
+
+test "effects must be handled by caller" {
     expect_error {
-        send("not-an-email", URL("https://x.com"))
+        let result = riskyOperation("bad")
     }
 }

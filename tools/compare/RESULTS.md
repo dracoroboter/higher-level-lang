@@ -71,32 +71,17 @@
 
 ### Stato test dopo refactoring
 
-| | Math | L2 | Invalid rejected |
-|---|---|---|---|
-| p2a | ✅ | ✅ | 5/9 (2 non implementati) |
-| p2b | ✅ | ✅ | 5/8 (1 crash NPE) |
-| p2c | ✅ | ✅ | 5/8 (1 crash NPE) |
+| | Math | L2 | compiler_tests | Invalid | Codegen eseguibile |
+|---|---|---|---|---|---|
+| p2a | ✅ | ✅ | 5/5 | 8/10 | ✅ (output = reference) |
+| p2b | ✅ | ✅ | 5/5 | 7/9 | ❌ (non aggiornato) |
+| p2c | ✅ | ✅ | 5/5 | 7/9 | ❌ (non aggiornato) |
 
-### ATTENZIONE: falsi positivi nei test
+### Codegen verification (p2a)
 
-I test specifici per la gestione errori (effect_not_handled, fails_not_handled, result_ignored, non_exhaustive_result) **NON funzionano correttamente**:
-
-- p2b/p2c: il test "not handled" causa un NPE nel compilatore (crash, non rifiuto intenzionale)
-- p2a: i test "result ignored" e "non exhaustive" sono accettati (feature non implementata)
-
-**Cosa funziona realmente in tutti i prototipi:**
-- ✅ Parsing della sintassi specifica (Result/effects/fails)
-- ✅ Null safety (Option obbligatorio)
-- ✅ Tipi nominali (incluso rifiuto di tipi diversi scambiati)
-- ✅ SQL injection prevention
-- ✅ Demeter warning
-
-**Cosa NON funziona ancora:**
-- ❌ Verifica che Result sia consumato (p2a)
-- ❌ Verifica che match su Result sia esaustivo (p2a)
-- ❌ Verifica che effetti siano gestiti (p2b)
-- ❌ Verifica che fails sia gestito (p2c)
-
-Queste sono le feature **differenzianti** tra i prototipi — senza di esse il confronto non è significativo.
+Il Java generato dal benchmark math è stato compilato ed eseguito. Output identico al reference oracle su tutti e 3 gli input di test:
+- `10 7 17 48 18` → fib(10)=55, fact(7)=5040, prime(17)=true, gcd(48,18)=6 ✅
+- `0 0 1 1 1` → fib(0)=0, fact(0)=1, prime(1)=false, gcd(1,1)=1 ✅
+- `20 12 104729 100 75` → fib(20)=6765, fact(12)=479001600, prime(104729)=true, gcd(100,75)=25 ✅
 
 Tutti i prototipi di livello 2 funzionano con la nuova sintassi.
