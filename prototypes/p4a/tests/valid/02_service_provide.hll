@@ -1,0 +1,17 @@
+// Test: service declaration and provide
+module storage
+
+export service FileStore {
+    function read(String path) -> String fails IOError
+    function write(String path, String content) -> Unit fails IOError
+}
+
+provide FileStore {
+    function read(String path) -> String fails IOError {
+        "content"
+    }
+
+    function write(String path, String content) -> Unit fails IOError {
+        // write to disk
+    }
+}

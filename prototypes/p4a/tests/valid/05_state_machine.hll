@@ -1,0 +1,20 @@
+// Test: state machine (inherited from p3b)
+module resources
+
+export state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function query(String sql) -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    conn.connect()
+    conn.query("SELECT 1")
+    conn.disconnect()
+}

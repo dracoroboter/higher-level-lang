@@ -1,0 +1,36 @@
+// Test: service with needs — all services declared and provided in same file
+module app
+
+export service FileStore {
+    function read(String path) -> String fails IOError
+}
+
+export service Logger {
+    function log(String msg) -> Unit
+}
+
+export service AppService {
+    function run() -> Unit fails IOError
+}
+
+provide FileStore {
+    function read(String path) -> String fails IOError {
+        "content"
+    }
+}
+
+provide Logger {
+    function log(String msg) -> Unit {
+    }
+}
+
+provide AppService {
+    needs FileStore fs
+    needs Logger log
+
+    function run() -> Unit fails IOError {
+        log.log("starting")
+        let data = fs.read("/config.txt")
+        log.log("loaded")
+    }
+}

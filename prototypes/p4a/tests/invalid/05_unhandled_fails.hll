@@ -1,0 +1,12 @@
+// INVALID: unhandled fails (inherited from p2c)
+module unhandled
+
+struct IOError { String message }
+
+function readFile(String path) -> String fails IOError {
+    fail IOError("not found")
+}
+
+function main() {
+    let content = readFile("/tmp/x")  // ERROR: IOError not handled or propagated
+}

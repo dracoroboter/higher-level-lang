@@ -1,0 +1,107 @@
+// Benchmark L4 — Module system eliminates structural antipatterns
+// Single-file version: all modules declared in one file for scoring purposes
+
+module app
+
+// --- Services (interfaces) — ANTI: God class → separated concerns ---
+
+export service UserRepo {
+    function find(Int id) -> Option<String> fails DBError
+    function save(String data) -> Unit fails DBError
+}
+
+export service EmailService {
+    function send(String to, String body) -> Unit fails IOError
+}
+
+export service Logger {
+    function log(String msg) -> Unit
+}
+
+export service AuthService {
+    function authenticate(String user, String pass) -> Bool fails AuthError
+}
+
+export service NotificationService {
+    function notify(String userId, String msg) -> Unit fails IOError
+}
+
+// --- Provides (implementations) — ANTI: Tight coupling → depends on interface ---
+
+provide UserRepo {
+    function find(Int id) -> Option<String> fails DBError {
+        Some("user_" + id)
+    }
+    function save(String data) -> Unit fails DBError {
+    }
+}
+
+provide EmailService {
+    function send(String to, String body) -> Unit fails IOError {
+    }
+}
+
+provide Logger {
+    function log(String msg) -> Unit {
+    }
+}
+
+// ANTI: Hidden dependency → all deps explicit via needs
+// ANTI: Service Locator → compile-time verified injection
+provide AuthService {
+    needs UserRepo repo
+    needs Logger log
+
+    function authenticate(String user, String pass) -> Bool fails AuthError {
+        log.log("Auth attempt: " + user)
+        let found = repo.find(1) | DBError(e) => fail AuthError("db failed")
+        match found {
+            Some(name) => name.equals(user)
+            None => false
+        }
+    }
+}
+
+provide NotificationService {
+    needs EmailService emailSvc
+    needs Logger log
+
+    function notify(String userId, String msg) -> Unit fails IOError {
+        log.log("Notifying " + userId)
+        emailSvc.send(userId, msg)
+    }
+}
+
+// --- State machine — ANTI: Temporal coupling, use-after-close ---
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function query(String sql) -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+// --- Error handling — ANTI: Exception swallowing, unchecked exceptions ---
+
+struct DBError { String message }
+struct IOError { String message }
+struct AuthError { String message }
+
+function loadUser(Int id) -> String fails DBError {
+    let repo = UserRepo
+    let result = repo.find(id)
+    match result {
+        Some(name) => name
+        None => fail DBError("not found")
+    }
+}
+
+// ANTI: Singleton abuse → no global state, services injected
+function main() {
+    let user = loadUser(1) | DBError(e) => "unknown"
+    println(user)
+}

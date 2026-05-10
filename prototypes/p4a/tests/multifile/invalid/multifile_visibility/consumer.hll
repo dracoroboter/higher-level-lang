@@ -1,0 +1,7 @@
+module consumer
+
+import lib.privateHelper
+
+function main() {
+    let x = privateHelper()
+}

@@ -1,0 +1,24 @@
+// Test: fails declaration and handler (inherited from p2c)
+module errors
+
+export struct IOError { String message }
+export struct ParseError { String message }
+
+export function readFile(String path) -> String fails IOError {
+    fail IOError("not found")
+}
+
+export function parseConfig(String content) -> Int fails ParseError {
+    fail ParseError("bad format")
+}
+
+export function loadConfig(String path) -> Int fails IOError, ParseError {
+    let content = readFile(path)
+    parseConfig(content)
+}
+
+function main() {
+    let result = loadConfig("/app.cfg")
+        | IOError(e) => 0
+        | ParseError(e) => 0
+}

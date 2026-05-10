@@ -1,0 +1,17 @@
+// INVALID: use after close (inherited from p3b)
+module stateviolation
+
+state File {
+    Open {
+        function write(String data) -> Open
+        function close() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let f = File.new()
+    f.write("hello")
+    f.close()
+    f.write("world")  // ERROR: write not available in Closed state
+}

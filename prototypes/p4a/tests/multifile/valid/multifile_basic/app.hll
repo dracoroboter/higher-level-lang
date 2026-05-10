@@ -1,0 +1,7 @@
+module app
+
+import db.UserRepo
+
+function main() {
+    println("app started")
+}

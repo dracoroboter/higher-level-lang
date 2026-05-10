@@ -1,0 +1,11 @@
+module db
+
+export service UserRepo {
+    function find(Int id) -> Option<String>
+}
+
+export provide UserRepo {
+    function find(Int id) -> Option<String> {
+        Some("user_" + id)
+    }
+}

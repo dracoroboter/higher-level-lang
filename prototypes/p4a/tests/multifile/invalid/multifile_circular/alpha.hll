@@ -1,0 +1,5 @@
+module alpha
+
+import beta.helperB
+
+export function helperA() -> Int { 42 }

@@ -1,0 +1,5 @@
+module lib
+
+function privateHelper() -> Int { 42 }
+
+export function publicFn() -> Int { 100 }

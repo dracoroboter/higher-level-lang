@@ -1,0 +1,14 @@
+// Test: basic module declaration and export
+module mylib
+
+export type UserId = Int
+
+export struct User {
+    UserId id,
+    String name
+}
+
+export function createUser(Int rawId, String name) -> User {
+    let id = UserId(rawId)
+    User(id, name)
+}

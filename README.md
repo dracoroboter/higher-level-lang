@@ -18,12 +18,13 @@ Secondary questions:
 
 | Proto | Nickname | Hypothesis | Score | Status |
 |---|---|---|---|---|
-| p1 | "null train" | Null safety + nominal types + Demeter | 28 | ✅ Working |
-| p2a | "result chain" | Errors as values (Result + ?) | 44 | ✅ Working |
-| p2b | "effect" | Algebraic effects | 43 | ✅ Working |
-| p2c | "checked simple" | Improved checked exceptions | 45 | ✅ Working |
+| p1 | "null train" | Null safety + nominal types + Demeter | 28 | 🏚️ Retired |
+| p2a | "result chain" | Errors as values (Result + ?) | 44 | 🏚️ Retired |
+| p2b | "effect" | Algebraic effects | 43 | 🏚️ Retired |
+| p2c | "checked simple" | Improved checked exceptions | 45 | ✅ Winner L2 |
 | p3a | "state strict" | Typestate with mandatory rebinding | 48 | ✅ Working |
-| p3b | "state light" | Typestate with in-place mutation | 47 | ✅ Working |
+| p3b | "state light" | Typestate with in-place mutation | 47 | ✅ Winner L3 |
+| p4a | "module" | Module system + DI + DAG deps | 47 | ✅ Working |
 
 Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
 
@@ -46,6 +47,9 @@ Score = weighted average of: correctness (30%), conciseness (25%, includes cyclo
 
 **p3b "state light"** (parent: p2b)
 > Same as p3a but with in-place mutation instead of rebinding. The compiler tracks state internally. Less ceremony (+216% fewer tokens than p3a for the same logic), same compile-time safety.
+
+**p4a "module"** (parents: p3b + p2c)
+> The code needs boundaries. Modules declare explicit interfaces (services), dependencies form a DAG verified at compile-time, and injection is a language construct. No circular deps, no hidden dependencies, no god classes, no service locators.
 
 ### Development Loop
 
@@ -125,6 +129,7 @@ prototypes/
 ├── p2c/                "checked simple" — improved checked exceptions
 ├── p3a/                "state strict" — typestate with rebinding
 ├── p3b/                "state light" — typestate with in-place mutation
+├── p4a/                "module" — module system + DI + DAG deps
 └── shared/             Shared code between prototypes
 tools/compare/          Benchmark framework and scoring
 TODO-LIST.md            Current task list

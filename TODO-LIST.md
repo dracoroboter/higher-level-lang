@@ -5,7 +5,7 @@
 - [ ] **Naming convention + minimizzare builtin** — applicare camelCase a tutti i file .hll, rimuovere println/parseInt come builtin, sostituire con wrapper Java
 - [ ] **Script di scoring automatico** — `tools/compare/score.sh` che calcola lo score di un prototipo con un comando
 - [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL per scoprire i limiti pratici del linguaggio
-- [ ] **Verificare procedura di loop** — la procedura deve includere esplicitamente il confronto con l'implementazione Java (output identico su input problematici)
+- [x] **Verificare procedura di loop** — aggiunto step 2b (confronto output Java) alla PROCEDURE.md
 
 ## Priorità media
 
@@ -21,11 +21,11 @@
 
 - [ ] **Formalizzare sistema di wrapper** — meccanismo di import/wrapping per librerie esterne. In futuro estendibile ad altri target (JS, WASM, etc.).
 - [ ] **Documentazione multilingua** — uniformare italiano/inglese
-- [ ] **Copiare codegen fixato a p2b/p2c** — attualmente solo p2a ha il codegen funzionante
+- [x] **Copiare codegen fixato a p2b/p2c** — codegen copiato a tutti i prototipi (p2b, p2c, p3a, p3b)
 
 ## Prossimo passo (loop di sviluppo)
 
-- [x] **Derivare prototipi livello 3** — p3a e p3b implementati (score 55 entrambi). p3b vince per ceremony ratio (-216%).
+- [x] **Derivare prototipi livello 3** — p3a e p3b implementati (p3a=48, p3b=47). p3b vince per ceremony ratio (-216%).
 - [ ] **Derivare prototipi livello 4** — p3b è il vincitore. Tema possibile: module system (DAG, injection, service)
 
 ## Completati (2026-05-10)
