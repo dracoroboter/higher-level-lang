@@ -159,6 +159,7 @@ statement
     | assignStmt
     | assertStmt
     | expectErrorStmt
+    | expectFailStmt
     | mockStmt
     | exprStmt
     ;
@@ -209,6 +210,10 @@ expectErrorStmt
     : 'expect_error' block
     ;
 
+expectFailStmt
+    : 'expectFail' IDENT block
+    ;
+
 assignStmt
     : IDENT '=' expr
     ;
@@ -245,6 +250,8 @@ primary
     | 'fail' IDENT '(' args? ')'               # failExpr
     | 'raise' IDENT '(' args? ')'              # raiseExpr
     | 'handle' expr '{' matchArm+ '}'          # handleExpr
+    | 'spawn' IDENT                             # spawnExpr
+    | 'await' expr                              # awaitExpr
     | IDENT                                     # identifier
     | STRING                                    # stringLit
     | NUMBER                                    # numberLit
@@ -266,6 +273,8 @@ SERVICE : 'service' ;
 PROVIDE : 'provide' ;
 NEEDS   : 'needs' ;
 MOCK    : 'mock' ;
+SPAWN   : 'spawn' ;
+AWAIT   : 'await' ;
 FAILS   : 'fails' ;
 FAIL    : 'fail' ;
 TYPE    : 'type' ;
@@ -296,6 +305,7 @@ FALSE   : 'false' ;
 TEST    : 'test' ;
 ASSERT  : 'assert' ;
 EXPECT_ERROR : 'expect_error' ;
+EXPECT_FAIL  : 'expectFail' ;
 
 // Identifiers and literals
 IDENT   : [a-zA-Z_][a-zA-Z0-9_]* ;

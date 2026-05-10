@@ -74,6 +74,8 @@ public sealed interface Node {
 
     record ExpectErrorStmt(Block body) implements Statement {}
 
+    record ExpectFailStmt(String errorType, Block body) implements Statement {}
+
     record MockStmt(String serviceName, List<FnDecl> methods) implements Statement {}
 
     record MatchArm(Pattern pattern, Expr body) implements Node {}
@@ -115,4 +117,8 @@ public sealed interface Node {
     record MatchExpr(Expr subject, List<MatchArm> arms) implements Expr {}
 
     record FailExpr(String errorType, List<Expr> args) implements Expr {}
+
+    record SpawnExpr(String serviceName) implements Expr {}
+
+    record AwaitExpr(Expr expr) implements Expr {}
 }

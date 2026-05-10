@@ -54,3 +54,14 @@ Il linguaggio ha il **minimo** di costrutti nativi. Tutto il resto è libreria:
 ## Attività futura
 
 Quando il progetto sarà più maturo, tradurre i documenti di ricerca in inglese per un pubblico accademico. Per ora la priorità è la velocità di scrittura, non la traduzione.
+
+## Regola delle giustificazioni
+
+Ogni scelta di design del linguaggio deve essere giustificata con almeno uno tra:
+1. **Esempio vincente in produzione** — un linguaggio/sistema che usa lo stesso approccio con successo dimostrabile (es. Erlang actor model → WhatsApp)
+2. **Pratica consolidata nell'industria** — pattern riconosciuto e adottato da più progetti/aziende (es. dependency injection)
+3. **Supporto accademico** — paper, studio, o formalizzazione che dimostra la correttezza/fattibilità (es. Strom & Yemini 1986 per typestate)
+
+Le giustificazioni vanno documentate in `doc/04-bibliografia.md` nella sezione "Decisioni di design informate dalla letteratura".
+
+Se una scelta non ha giustificazione, va marcata come **sperimentale** e monitorata per validazione futura.

@@ -19,12 +19,13 @@ L'INTENT si scrive PRIMA del codice. È il contratto: il prototipo deve fare esa
 ### 2. BENCHMARK JAVA
 
 Scrivere (o estendere) il benchmark Java di riferimento per il livello:
-- Il benchmark Java è scritto **con gli antipattern** che il livello vuole eliminare
+- Il benchmark Java è scritto **bene** — è il codice di riferimento che funziona correttamente
+- Gli antipattern che il livello vuole eliminare sono dimostrati nei **test invalid** (codice Java che compila ma ha bug)
 - Cresce ad ogni livello: livello 2 include i problemi del livello 1 + i nuovi
-- È il reference oracle: produce l'output corretto che i prototipi HLL devono replicare
+- È il reference oracle: stessi input → stessi valori calcolati/ritornati (il codice generato dal transpiler può essere diverso)
 - Include input problematici (edge case, valori invalidi, campi assenti)
 
-Il benchmark Java definisce **cosa deve migliorare** il prototipo. Se il Java non ha il problema, il prototipo non ha nulla da dimostrare.
+Il benchmark Java definisce il **comportamento corretto**. I test invalid (in `tests/invalid_java/`) dimostrano gli antipattern che Java permette e HLL blocca.
 
 ### 2. IMPLEMENT
 
@@ -93,7 +94,7 @@ Per ogni antipattern dichiarato nell'INTENT:
 - Se il test crasha → -1 punto
 
 ### Benchmark condiviso
-Tutti i prototipi allo stesso livello compilano lo stesso benchmark. Il benchmark Java è il reference oracle — l'output deve essere identico sugli stessi input.
+Tutti i prototipi allo stesso livello compilano lo stesso benchmark. Il comportamento è misurato dai test: i test HLL devono essere funzionalmente equivalenti ai test Java e il più approfonditi possibile.
 
 ---
 

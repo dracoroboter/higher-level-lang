@@ -4,14 +4,16 @@
 
 - [x] **Naming convention + minimizzare builtin** — camelCase applicato, println/parseInt sono wrapper Java nel codegen (non keyword)
 - [x] **Script di scoring automatico** — `tools/compare/score.sh`, usa solo test del prototipo, `--strict` per warning→error
-- [ ] **Validazione con codice Java reale** — tradurre un frammento di progetto vero in HLL per scoprire i limiti pratici del linguaggio
+- [ ] **Validazione con codice Java reale** — benchmarkapp creata (OrderSystem). p4a traduce con 5/5 test. Estendere nel tempo.
 - [x] **Verificare procedura di loop** — aggiunto step 2b (confronto output Java) alla PROCEDURE.md
+
+**Regola:** ogni scelta di design deve essere giustificata con almeno uno tra: esempio vincente in produzione, pratica consolidata nell'industria, supporto accademico (paper/studio). Le giustificazioni vanno in `doc/04-bibliografia.md`.
 
 ## Priorità media
 
 - [ ] **Risolvere assenza ereditarietà** — 3 problemi aperti: verbosità delega, polimorfismo ad-hoc, interop framework. Vedi `doc/04-bibliografia.md` sezione "Assenza di ereditarietà"
 - [ ] **Concorrenza sicura (Actor Model)** — `spawn` crea attori, `service` = interfaccia attore, stato privato, messaggi immutabili. Blocca Race Condition, Deadlock, Busy Waiting. Vedi `doc/11-concorrenza.md`
-- [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: esecuzione runtime dei test (attualmente solo compile-time check).
+- [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: `expect_fail ErrorType { expr }` per test di errori runtime (non solo compile-time). Vedi Kotlin `assertThrows`, Rust `#[should_panic]`, QuickCheck property-based testing.
 - [x] **Derivare prototipi livello 4** — p4a implementato (score 47). Padri: p3b + p2c. Multi-file compiler.
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri
 - [ ] **Migliorare ciclo di test** — creare jar eseguibile + script batch (`tools/compare/run_all.sh`)

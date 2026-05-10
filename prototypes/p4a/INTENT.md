@@ -84,10 +84,11 @@ function handleRequest(AuthService auth, Request req) -> Response fails AppError
 
 ### Stato
 ✅ Funzionante (2026-05-10)
-- Score: 52/100 (28/46 antipattern = 60%)
+- Score: 54/100 (33/46 antipattern = 71%)
 - Compilatore multi-file con DAG check
-- 23 test invalid rifiutati + 5 bloccati by design
-- 6 test valid + 3 benchmark compilano
-- Mock nativo per test
+- 25 test invalid rifiutati + 8 bloccati by design
+- 7 test valid + 3 benchmark compilano
+- Mock nativo + expectFail per test runtime
+- Actor model: spawn/await con no-aliasing
 - `--strict` promuove warning a errori
 

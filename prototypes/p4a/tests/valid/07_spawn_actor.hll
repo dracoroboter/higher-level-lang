@@ -1,0 +1,20 @@
+// Test: spawn an actor from a service, send messages, await response
+module concurrency
+
+export service Counter {
+    function increment() -> Unit
+    function get() -> Int
+}
+
+provide Counter {
+    function increment() -> Unit { }
+    function get() -> Int { 0 }
+}
+
+function main() {
+    let counter = spawn Counter
+    counter.increment()
+    counter.increment()
+    let value = await counter.get()
+    println(value)
+}

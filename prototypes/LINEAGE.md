@@ -25,7 +25,7 @@ p1 "null train" 🏚️ ritirato
 | p3a | p2b | state strict | type-state con ownership obbligatoria | ✅ funzionante | 52 |
 | p3b | p2b | state light | type-state con ownership solo su state | ✅ vincitore L3 | 49 |
 | p3c | p2b | state runtime | type-state con verifica a runtime | ❌ scartato | — |
-| p4a | p3b, p2c | module | module system + injection + DAG deps | ✅ funzionante | 52 |
+| p4a | p3b, p2c | module | module system + injection + DAG deps | ✅ funzionante | 54 |
 
 ## Come leggere la genealogia
 

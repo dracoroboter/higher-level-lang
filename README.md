@@ -24,7 +24,7 @@ Secondary questions:
 | p2c | "checked simple" | Improved checked exceptions | 40 | ✅ Winner L2 |
 | p3a | "state strict" | Typestate with mandatory rebinding | 52 | ✅ Working |
 | p3b | "state light" | Typestate with in-place mutation | 49 | ✅ Winner L3 |
-| p4a | "module" | Module system + DI + DAG deps | 52 | ✅ Working |
+| p4a | "module" | Module system + DI + DAG deps | 54 | ✅ Working |
 
 Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100. Weights configurable via env vars.
 
@@ -35,7 +35,7 @@ Score = weighted average of: correctness (30%), conciseness (25%, includes cyclo
 | p2c | 100% | 25 | 0 | 19% (9/46) | 4% (2/47) | 2/2 | 9/9 | 72 | 95 |
 | p3a | 100% | 61 | 100 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
 | p3b | 100% | 48 | 75 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
-| p4a | 100% | 27 | 0 | 60% (28/46) | 6% (3/47) | 3/3 | 23/23 | 77 | 105 |
+| p4a | 100% | 27 | 0 | 71% (33/46) | 6% (3/47) | 3/3 | 25/25 | 77 | 105 |
 
 ### Prototype Intents
 
@@ -128,6 +128,7 @@ Key characteristics:
 ## Project Structure
 
 ```
+benchmarkapp/           Java reference app (OrderSystem: server+client+DB+cache+queue)
 doc/                    Research documentation (Italian)
 prototypes/
 ├── LINEAGE.md          Prototype derivation graph
@@ -139,6 +140,7 @@ prototypes/
 ├── p3a/                "state strict" — typestate with rebinding
 ├── p3b/                "state light" — typestate with in-place mutation
 ├── p4a/                "module" — module system + DI + DAG deps
+│   └── benchmarkapp/   HLL translation of the reference app
 └── shared/             Shared code between prototypes
 tools/compare/          Benchmark framework and scoring
 TODO-LIST.md            Current task list

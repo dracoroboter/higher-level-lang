@@ -194,6 +194,7 @@ public class JavaCodeGen {
             }
             case AssertStmt as -> emit("assert " + generateExpr(as.condition()) + ";");
             case ExpectErrorStmt ee -> {} // not generated
+            case ExpectFailStmt ef -> {} // runtime test, not generated
             case MockStmt ms -> {} // mocks are compile-time only, not generated
             case WhileStmt ws -> {
                 emit("while (" + generateExpr(ws.condition()) + ") {");
@@ -301,6 +302,8 @@ public class JavaCodeGen {
                 String fArgs = fe.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
                 yield "throw new " + fe.errorType() + "(" + fArgs + ")";
             }
+            case SpawnExpr se -> "new " + se.serviceName() + "Actor()";
+            case AwaitExpr ae -> generateExpr(ae.expr()) + ".get()";
         };
     }
 

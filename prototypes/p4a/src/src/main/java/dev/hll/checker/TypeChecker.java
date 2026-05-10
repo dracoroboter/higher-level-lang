@@ -26,6 +26,7 @@ public class TypeChecker {
     private Map<String, Set<String>> allModuleExports = new HashMap<>();
     private Map<String, Program> allModules = new HashMap<>();
     private final Set<String> calledFunctions = new HashSet<>();
+    private final Set<String> spawnedVars = new HashSet<>();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -268,6 +269,14 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
+                // Track spawned actors
+                if (ls.value() instanceof SpawnExpr) {
+                    spawnedVars.add(ls.name());
+                }
+                // Check: no aliasing of spawned actors
+                if (ls.value() instanceof Identifier id && spawnedVars.contains(id.name())) {
+                    errors.add("Cannot alias actor '" + id.name() + "': actors cannot be shared. Each actor must have a single owner. In: " + context);
+                }
                 // Check: if calling a function that fails, must handle or propagate
                 if (!ls.hasErrorHandler() && ls.value() instanceof FnCall fc) {
                     var calledFn = functions.get(fc.name());
@@ -319,6 +328,14 @@ public class TypeChecker {
             }
             case AssertStmt as -> inferType(as.condition(), scope, context);
             case ExpectErrorStmt ee -> {}
+            case ExpectFailStmt ef -> {
+                // Verify the error type exists (is a declared struct)
+                if (!structs.containsKey(ef.errorType())) {
+                    errors.add("Unknown error type '" + ef.errorType() + "' in expectFail. In: " + context);
+                }
+                // Check the block — it should contain a call that fails with this error
+                checkBlock(ef.body(), new HashMap<>(scope), context, List.of());
+            }
             case MockStmt ms -> {
                 // Check: mock target must be a declared service
                 if (!services.containsKey(ms.serviceName())) {
@@ -495,8 +512,19 @@ public class TypeChecker {
             }
 
             case FailExpr fe -> {
-                // fail is a diverging expression — returns bottom
                 return null;
+            }
+
+            case SpawnExpr se -> {
+                // spawn only works on services
+                if (!services.containsKey(se.serviceName())) {
+                    errors.add("Cannot spawn '" + se.serviceName() + "': not a declared service. Only services can be spawned as actors. In: " + context);
+                }
+                return new TypeExpr(se.serviceName(), Optional.empty());
+            }
+
+            case AwaitExpr ae -> {
+                return inferType(ae.expr(), scope, context, chainDepth);
             }
 
             case OptionPropagate op -> {

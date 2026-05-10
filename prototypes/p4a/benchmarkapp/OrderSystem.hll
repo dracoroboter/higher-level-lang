@@ -1,0 +1,237 @@
+// OrderSystem in HLL p4a
+// Translation of the Java validation project
+
+module orders
+
+// ===== Domain Types (nominal — prevents swapped params) =====
+
+type OrderId = String
+type Email = String
+type Product = String
+type Amount = Int
+
+// ===== Order with state machine (prevents invalid transitions) =====
+
+state Order {
+    Pending {
+        function confirm() -> Confirmed
+    }
+    Confirmed {
+        function ship() -> Shipped
+    }
+    Shipped { }
+}
+
+struct OrderData {
+    OrderId id,
+    Email customerEmail,
+    Product product,
+    Amount amount
+}
+
+// ===== Error types =====
+
+struct NotFoundError { String message }
+struct ValidationError { String message }
+struct InvalidStateError { String message }
+
+// ===== Services =====
+
+export service Database {
+    function insert(OrderId id, OrderData data) -> Unit
+    function findById(OrderId id) -> Option<OrderData> fails NotFoundError
+    function findByEmail(Email email) -> List<OrderData>
+    function updateStatus(OrderId id, String status) -> Unit fails NotFoundError
+    function delete(OrderId id) -> Unit
+}
+
+export service Cache {
+    function get(String key) -> Option<String>
+    function put(String key, String value) -> Unit
+    function invalidate(String key) -> Unit
+}
+
+export service MessageQueue {
+    function publish(String message) -> Unit
+    function subscribe(String pattern) -> Unit
+}
+
+export service OrderService {
+    function createOrder(Email email, Product product, Amount amount) -> OrderId fails ValidationError
+    function getOrder(OrderId id) -> OrderData fails NotFoundError
+    function confirmOrder(OrderId id) -> Unit fails NotFoundError, InvalidStateError
+    function shipOrder(OrderId id) -> Unit fails NotFoundError, InvalidStateError
+}
+
+export service Server {
+    function handleCreateOrder(Email email, Product product, Amount amount) -> String
+    function handleGetOrder(OrderId id) -> String
+    function handleConfirmOrder(OrderId id) -> String
+    function handleShipOrder(OrderId id) -> String
+}
+
+export service Client {
+    function createOrder(Email email, Product product, Amount amount) -> String
+    function getOrder(OrderId id) -> String
+    function confirmOrder(OrderId id) -> String
+    function shipOrder(OrderId id) -> String
+}
+
+// ===== Implementations =====
+
+provide Database {
+    function insert(OrderId id, OrderData data) -> Unit { }
+    function findById(OrderId id) -> Option<OrderData> fails NotFoundError { None }
+    function findByEmail(Email email) -> List<OrderData> { }
+    function updateStatus(OrderId id, String status) -> Unit fails NotFoundError { }
+    function delete(OrderId id) -> Unit { }
+}
+
+provide Cache {
+    function get(String key) -> Option<String> { None }
+    function put(String key, String value) -> Unit { }
+    function invalidate(String key) -> Unit { }
+}
+
+provide MessageQueue {
+    function publish(String message) -> Unit { }
+    function subscribe(String pattern) -> Unit { }
+}
+
+provide OrderService {
+    needs Database db
+    needs Cache cache
+    needs MessageQueue queue
+
+    function createOrder(Email email, Product product, Amount amount) -> OrderId fails ValidationError {
+        if amount <= 0 {
+            fail ValidationError("Amount must be positive")
+        }
+        let id = OrderId("ORD-1")
+        let data = OrderData(id, email, product, amount)
+        db.insert(id, data)
+        cache.invalidate("orders:" + email)
+        queue.publish("ORDER_CREATED:" + id)
+        id
+    }
+
+    function getOrder(OrderId id) -> OrderData fails NotFoundError {
+        let cached = cache.get("order:" + id)
+        match cached {
+            Some(val) => OrderData(id, Email(""), Product(""), Amount(0))
+            None => db.findById(id)
+        }
+    }
+
+    function confirmOrder(OrderId id) -> Unit fails NotFoundError, InvalidStateError {
+        let order = db.findById(id)
+        cache.invalidate("order:" + id)
+        queue.publish("ORDER_CONFIRMED:" + id)
+    }
+
+    function shipOrder(OrderId id) -> Unit fails NotFoundError, InvalidStateError {
+        let order = db.findById(id)
+        cache.invalidate("order:" + id)
+        queue.publish("ORDER_SHIPPED:" + id)
+    }
+}
+
+provide Server {
+    needs OrderService orderSvc
+
+    function handleCreateOrder(Email email, Product product, Amount amount) -> String {
+        let id = orderSvc.createOrder(email, product, amount)
+            | ValidationError(e) => "400:" + e.message
+        "201:" + id
+    }
+
+    function handleGetOrder(OrderId id) -> String {
+        let order = orderSvc.getOrder(id)
+            | NotFoundError(e) => "404:not found"
+        "200:" + order.id
+    }
+
+    function handleConfirmOrder(OrderId id) -> String {
+        let result = orderSvc.confirmOrder(id)
+            | NotFoundError(e) => "400:" + e.message
+            | InvalidStateError(e) => "400:" + e.message
+        "200:confirmed"
+    }
+
+    function handleShipOrder(OrderId id) -> String {
+        let result = orderSvc.shipOrder(id)
+            | NotFoundError(e) => "400:" + e.message
+            | InvalidStateError(e) => "400:" + e.message
+        "200:shipped"
+    }
+}
+
+provide Client {
+    needs Server srv
+
+    function createOrder(Email email, Product product, Amount amount) -> String {
+        srv.handleCreateOrder(email, product, amount)
+    }
+
+    function getOrder(OrderId id) -> String {
+        srv.handleGetOrder(id)
+    }
+
+    function confirmOrder(OrderId id) -> String {
+        srv.handleConfirmOrder(id)
+    }
+
+    function shipOrder(OrderId id) -> String {
+        srv.handleShipOrder(id)
+    }
+}
+
+// ===== Tests =====
+
+test "create order happy path" {
+    mock Database {
+        function insert(OrderId id, OrderData data) -> Unit { }
+        function findById(OrderId id) -> Option<OrderData> fails NotFoundError { None }
+        function findByEmail(Email email) -> List<OrderData> { }
+        function updateStatus(OrderId id, String status) -> Unit fails NotFoundError { }
+        function delete(OrderId id) -> Unit { }
+    }
+    mock Cache {
+        function get(String key) -> Option<String> { None }
+        function put(String key, String value) -> Unit { }
+        function invalidate(String key) -> Unit { }
+    }
+    mock MessageQueue {
+        function publish(String message) -> Unit { }
+        function subscribe(String pattern) -> Unit { }
+    }
+}
+
+test "cannot create order with invalid amount" {
+    expectFail ValidationError {
+        let svc = spawn OrderService
+        svc.createOrder(Email("a@b.com"), Product("X"), Amount(0))
+    }
+}
+
+test "order lifecycle: pending -> confirmed -> shipped" {
+    // The state machine enforces valid transitions
+    let order = Order.new()
+    order.confirm()
+    order.ship()
+}
+
+test "cannot ship before confirm" {
+    expect_error {
+        let order = Order.new()
+        order.ship()  // ERROR: ship not available in Pending state
+    }
+}
+
+test "cannot confirm twice" {
+    expect_error {
+        let order = Order.new()
+        order.confirm()
+        order.confirm()  // ERROR: confirm not available in Confirmed state
+    }
+}

@@ -255,6 +255,29 @@ I framework Java/C# si basano su "estendi questa classe base" (HttpServlet, Acti
 
 **Stato:** Problema aperto. Da affrontare nel livello 5 o come variante di p4a.
 
+### Testing di errori runtime: `expect_fail`
+
+**Fonti:**
+- Claessen, K. & Hughes, J. "QuickCheck: A Lightweight Tool for Random Testing of Haskell Programs" (ICFP 2000) — property-based testing, generazione automatica di input
+- Kotlin: `assertThrows<ExceptionType> { code }` — verifica che un blocco lanci un'eccezione specifica a runtime
+- Rust: `#[should_panic(expected = "message")]` — attributo su test che deve paniccare
+- Swift Testing: `#expect(throws: ErrorType.self) { code }` — verifica errore runtime
+- Kotest (Kotlin): `shouldThrow<T> { block }` — DSL per asserzioni su eccezioni
+
+**Problema in HLL:** `expect_error` verifica solo errori del type checker (compile-time). Non può testare business logic che usa `fail` a runtime (es. "amount deve essere positivo"). Serve un costrutto che esegua il codice e verifichi che produca un `fail` specifico.
+
+**Proposta per HLL:**
+```hll
+test "invalid amount fails" {
+    expect_fail ValidationError {
+        let svc = spawn OrderService
+        svc.createOrder(Email("a@b.com"), Product("X"), Amount(0))
+    }
+}
+```
+
+`expect_fail ErrorType { block }` = esegui il blocco, verifica che produca `fail ErrorType`. Se non fallisce o fallisce con un errore diverso → test fallito.
+
 ---
 
 ## Plaid: risorse disponibili per la ricerca

@@ -74,27 +74,14 @@ for f in ../benchmark/*.hll; do
 done
 ```
 
-## 2b. Verificare codegen (output identico a Java)
+## 2b. Verificare comportamento (test funzionalmente equivalenti)
 
-Se il prototipo ha codegen funzionante:
+Il comportamento del prototipo è corretto se i test funzionalmente equivalenti a quelli Java passano. Non serve che il codice generato sia uguale al Java di riferimento — serve che il **comportamento** sia lo stesso, misurato dai test.
 
-```bash
-cd prototypes/pXy/src
-
-# Generare Java dal benchmark
-mvn exec:java -Dexec.mainClass=dev.hll.Main \
-    -Dexec.args="../benchmark/benchmark_exec.hll" -q > /tmp/Generated.java
-
-# Compilare ed eseguire il Java generato
-javac /tmp/Generated.java -d /tmp
-java -cp /tmp Generated > /tmp/hll_output.txt
-
-# Confrontare con output di riferimento
-diff /tmp/hll_output.txt ../benchmark/expected_output.txt
-# Se diff è vuoto → codegen corretto
-```
-
-**Regola:** il codegen è valido solo se l'output del Java generato è identico all'output di riferimento. Differenze di whitespace sono accettabili (usare `diff -b`).
+I test devono essere:
+- Funzionalmente equivalenti (stessa semantica del test Java)
+- Il più approfonditi possibile (stessa copertura o migliore)
+- Scritti nella sintassi del prototipo
 
 ## 3. Calcolare lo score
 

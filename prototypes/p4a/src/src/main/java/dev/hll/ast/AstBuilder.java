@@ -310,6 +310,13 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitExpectFailStmt(HllParser.ExpectFailStmtContext ctx) {
+        String errorType = ctx.IDENT().getText();
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.ExpectFailStmt(errorType, body);
+    }
+
+    @Override
     public Object visitReturnStmt(HllParser.ReturnStmtContext ctx) {
         Optional<Node.Expr> value = ctx.expr() != null
                 ? Optional.of((Node.Expr) visit(ctx.expr()))
@@ -460,6 +467,16 @@ public class AstBuilder extends HllBaseVisitor<Object> {
                 ? ctx.args().expr().stream().map(e -> (Node.Expr) visit(e)).collect(Collectors.toList())
                 : List.of();
         return new Node.FailExpr(errorType, args);
+    }
+
+    @Override
+    public Object visitSpawnExpr(HllParser.SpawnExprContext ctx) {
+        return new Node.SpawnExpr(ctx.IDENT().getText());
+    }
+
+    @Override
+    public Object visitAwaitExpr(HllParser.AwaitExprContext ctx) {
+        return new Node.AwaitExpr((Node.Expr) visit(ctx.expr()));
     }
 
     @Override

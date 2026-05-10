@@ -11,3 +11,6 @@ Per ogni entry: il file Java dimostra l'antipattern, la colonna "Costrutto assen
 | 3 | Callback Hell | callback asincroni | HLL non ha callback, lambda asincroni, o Promise. Il flusso è sequenziale con `fails` per gli errori. | `blocked/CallbackHell.java` |
 | 4 | Poltergeist | classi istanziabili senza stato | HLL ha solo struct (dati) e service (interfacce). Non puoi creare una classe "manager" che fa solo forwarding. | `blocked/Poltergeist.java` |
 | 5 | Thread Unsafe Singleton | `static`, global state | HLL non ha variabili statiche né global state. I service sono iniettati, non istanziati globalmente. | `blocked/ThreadUnsafeSingleton.java` |
+| 6 | Race Condition | shared mutable state | Actor model: ogni attore ha stato privato, comunicazione solo via messaggi immutabili. `spawn` crea attori isolati, aliasing vietato. | `blocked/RaceCondition.java` |
+| 7 | Deadlock | lock/mutex | HLL non ha lock, mutex, o synchronized. Gli attori comunicano via messaggi. Il DAG dei moduli previene cicli di comunicazione. | `blocked/Deadlock.java` |
+| 8 | Busy Waiting | while + shared flag | HLL non ha shared mutable state. Gli attori ricevono messaggi dalla mailbox (blocking receive gestito dal runtime). Non puoi scrivere `while(!flag)` su una variabile condivisa. | `blocked/BusyWaiting.java` |
