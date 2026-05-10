@@ -9,11 +9,13 @@
 
 ## Priorità media
 
-- [ ] **Unit test e mocking inerenti** — costrutto `mock` per i test. Vedi `doc/08-test-framework.md`. Dipende dal module system (injection).
-- [ ] **Derivare prototipi livello 4** — p3b è il vincitore. Tema possibile: module system (DAG, injection, service)
+- [ ] **Risolvere assenza ereditarietà** — 3 problemi aperti: verbosità delega, polimorfismo ad-hoc, interop framework. Vedi `doc/04-bibliografia.md` sezione "Assenza di ereditarietà"
+- [ ] **Concorrenza sicura** — aggiungere primitiva di concorrenza che blocchi Race Condition, Deadlock, Busy Waiting by design. Possibili approcci: actor model, structured concurrency, ownership (Rust-style)
+- [ ] **Unit test e mocking inerenti** — ✅ `mock` implementato in p4a. Manca: esecuzione runtime dei test (attualmente solo compile-time check).
+- [x] **Derivare prototipi livello 4** — p4a implementato (score 47). Padri: p3b + p2c. Multi-file compiler.
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri
 - [ ] **Migliorare ciclo di test** — creare jar eseguibile + script batch (`tools/compare/run_all.sh`)
-- [ ] **Separatore di statement** — decidere `;` opzionale o newline implicito
+- [x] **Separatore di statement** — newline implicito (nessun `;` richiesto), già implementato
 - [ ] **Fix codegen main signature** — `main(List args)` → `main(String[] args)` automatico
 - [ ] **Fix p1 per benchmark L1** — il parser di p1 non supporta match-expr
 

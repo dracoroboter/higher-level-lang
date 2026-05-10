@@ -14,17 +14,31 @@ Il codice reale non vive in un singolo file. Servono confini tra moduli, dipende
 |---|---|
 | (da p3b) Temporal Coupling | State machine verificata |
 | (da p3b) Use After Free / Double Close | Type-state |
-| (da p3b) Resource Leak | Warning su path non terminali |
 | (da p2c) Exception swallowing | Handler obbligatorio |
 | (da p2c) Unchecked exceptions | `fails` dichiarato |
-| (da p2c) throws Exception generico | Errori specifici obbligatori |
 | (da p1) NPE, Stringly-typed, Demeter | Ereditati |
+| (da p1) Type Confusion | Tipi nominali, no cast |
+| (da p1) SQL Injection | Tipo nominale Query |
 | Circular Dependencies | DAG verificato a compile-time |
 | God Class / God Module | Moduli con interfaccia esplicita (solo export visibili) |
 | Hidden Dependencies | Import espliciti, nessun global state |
 | Service Locator | Injection dichiarativa (il compilatore verifica le dipendenze) |
 | Tight Coupling | Dipendenze su interfacce (service), non implementazioni |
-| Singleton abuse | Service con lifecycle gestito dal module system |
+| Mutable Global State | Parser rifiuta variabili top-level |
+| Lava Flow / Dead Code | Warning su funzioni mai chiamate |
+| Inconsistent Return Types | Check che tutti i path ritornino un valore |
+| God Interface | Warning su service con >7 metodi |
+| Incomplete Mock | Mock deve implementare tutti i metodi del service |
+| Mock non-service | Solo i service sono mockabili |
+
+### Bloccati per assenza del costrutto (by design)
+| Antipattern | Costrutto assente |
+|---|---|
+| Deep Inheritance | No `class extends` |
+| Yo-Yo Problem | No ereditarietà |
+| Callback Hell | No callback asincroni |
+| Poltergeist | No classi stateless (solo struct + service) |
+| Thread Unsafe Singleton | No `static`, no global state |
 
 ### Meccanismo
 ```hll
@@ -69,4 +83,11 @@ function handleRequest(AuthService auth, Request req) -> Response fails AppError
 - Il module system aggiunge complessità al compilatore (risoluzione nomi, multi-file)
 
 ### Stato
-🔲 Da implementare
+✅ Funzionante (2026-05-10)
+- Score: 52/100 (28/46 antipattern = 60%)
+- Compilatore multi-file con DAG check
+- 23 test invalid rifiutati + 5 bloccati by design
+- 6 test valid + 3 benchmark compilano
+- Mock nativo per test
+- `--strict` promuove warning a errori
+

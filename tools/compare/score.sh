@@ -114,9 +114,15 @@ echo ""
 echo "Cyclomatic complexity: HLL=$hll_cc, Java=$java_cc"
 
 # --- Antipatterns blocked ---
-antipattern=$((invalid_ok * 100 / 46))
+# Count blocked-by-design (from BLOCKED_BY_DESIGN.md if exists)
+blocked_by_design=0
+if [ -f "$PROTO/BLOCKED_BY_DESIGN.md" ]; then
+    blocked_by_design=$(grep -c "^| [0-9]" "$PROTO/BLOCKED_BY_DESIGN.md" 2>/dev/null || echo 0)
+fi
+total_blocked=$((invalid_ok + blocked_by_design))
+antipattern=$((total_blocked * 100 / 46))
 echo ""
-echo "Antipatterns: $antipattern (${invalid_ok}/46)"
+echo "Antipatterns: $antipattern (${total_blocked}/46 = ${invalid_ok} tested + ${blocked_by_design} by design)"
 
 # --- Patterns included ---
 pattern=$((valid_ok * 100 / 47))

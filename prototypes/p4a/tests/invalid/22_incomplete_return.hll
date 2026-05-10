@@ -1,0 +1,9 @@
+// INVALID: not all paths return a value
+module incomplete
+
+function classify(Int x) -> String {
+    if x > 0 {
+        "positive"
+    }
+    // ERROR: no else branch — what if x <= 0?
+}

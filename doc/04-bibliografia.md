@@ -204,6 +204,57 @@ Mostra come implementare il typestate pattern **manualmente** in Rust usando il 
 - Session Types (Honda, 1993) — protocolli di comunicazione tipizzati
 - "Typestate via Revocable Capabilities" (arXiv 2510.08889, 2025) — approccio recente basato su capabilities
 
+## Decisioni di design informate dalla letteratura
+
+### Magic Numbers: non un antipattern separato
+
+**Fonti:**
+- Martin, R.C. "Clean Code" (2008), Cap. 17 "Smells and Heuristics" — G25: "Replace Magic Numbers with Named Constants"
+- SE Stack Exchange, "Magic numbers, locality and readability" (2016) — dibattito su costanti single-use
+- SE Stack Exchange, "Eliminating Magic Numbers: When is it time to say No?" — consenso: il contesto determina se un literal è "magic"
+
+**Decisione:** In HLL, i magic numbers non sono un antipattern separato perché sono già coperti dai **tipi nominali obbligatori** (Primitive Obsession). Se una funzione accetta `Int` dove dovrebbe accettare `Port` o `Timeout`, il tipo nominale cattura il problema. Creare costanti per literal usati una sola volta è considerato un antipattern a sua volta ("useless constant"). Il vero problema non è il literal ma l'assenza di significato nel tipo.
+
+### Assenza di ereditarietà: problemi aperti
+
+**Fonti:**
+- Pike, R. "Go at Google: Language Design in the Service of Software Engineering" (2012) — motivazioni per l'assenza di ereditarietà in Go
+- Matsakis, N. & Klock, F. "The Rust Language" (ACM SIGAda Ada Letters, 2014) — trait come alternativa all'ereditarietà
+- Gamma, E. et al. "Design Patterns" (1994), p. 20 — "Favor object composition over class inheritance"
+- LWN.net, "Go and Rust — objects without class" (2013) — analisi comparativa
+- Stepanov, A. "Elements of Programming" (2009) — distinzione valori/oggetti
+
+**Contesto:** HLL non ha ereditarietà. Questo elimina 3 antipattern (Deep Inheritance, Yo-Yo Problem, Fragile Base Class) ma introduce 3 problemi aperti:
+
+**1. Verbosità nella delega**
+
+Senza ereditarietà, il riuso di codice richiede composizione esplicita. Se un tipo vuole "ereditare" 10 metodi da un altro, deve delegare manualmente ciascuno. Go risolve con l'embedding (promozione automatica dei metodi). Rust risolve con trait default methods + derive macro.
+
+*Possibili soluzioni per HLL:*
+- `delegate` keyword: `struct MyService { delegate BaseService base }` — promuove automaticamente i metodi di `base`
+- Default methods nei service: `service Logger { function log(String msg) -> Unit { println(msg) } }`
+- Composizione con forwarding automatico
+
+**2. Polimorfismo limitato**
+
+Il costrutto `service` fornisce polimorfismo a livello di injection (un `provide` diverso per ambiente diverso). Ma manca il polimorfismo **ad-hoc** (trattare tipi diversi in modo uniforme senza un service). Es: una funzione che accetta "qualsiasi cosa con un metodo `toString()`".
+
+*Possibili soluzioni per HLL:*
+- Trait/interface con implementazione: `trait Printable { function toString() -> String }`
+- Structural typing (come Go): se un tipo ha i metodi giusti, soddisfa l'interfaccia implicitamente
+- Bounded generics: `function print<T: Printable>(T item) -> Unit`
+
+**3. Interoperabilità con framework/librerie**
+
+I framework Java/C# si basano su "estendi questa classe base" (HttpServlet, Activity, TestCase). Senza ereditarietà, HLL non può interoperare direttamente con questi framework. Il transpile a Java mitiga il problema (il codice generato può usare ereditarietà) ma il programmatore HLL non ha accesso diretto al meccanismo.
+
+*Possibili soluzioni per HLL:*
+- Wrapper/adapter generati automaticamente dal compilatore
+- `extern class` per dichiarare classi Java da estendere nel codice generato
+- Limitare il target a librerie che usano composizione (Spring DI, Dagger)
+
+**Stato:** Problema aperto. Da affrontare nel livello 5 o come variante di p4a.
+
 ---
 
 ## Plaid: risorse disponibili per la ricerca

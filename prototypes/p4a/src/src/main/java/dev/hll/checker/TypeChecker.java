@@ -25,6 +25,7 @@ public class TypeChecker {
     // Multi-file context
     private Map<String, Set<String>> allModuleExports = new HashMap<>();
     private Map<String, Program> allModules = new HashMap<>();
+    private final Set<String> calledFunctions = new HashSet<>();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -62,6 +63,16 @@ public class TypeChecker {
         // Pass 3: check function bodies
         for (var decl : program.declarations()) {
             checkDeclaration(decl);
+        }
+
+        // Pass 4: dead code detection (functions declared but never called)
+        for (var entry : functions.entrySet()) {
+            String fnName = entry.getKey();
+            if (fnName.equals("main")) continue; // main is entry point
+            if (exportedSymbols.contains(fnName)) continue; // exported = public API
+            if (!calledFunctions.contains(fnName)) {
+                warnings.add("Dead code: function '" + fnName + "' is declared but never called");
+            }
         }
     }
 
@@ -126,6 +137,13 @@ public class TypeChecker {
         }
         // Check for A→B→A cycles (simple 2-hop check for single-file multi-module)
         // In a real compiler this would be a full DAG check across files
+
+        // Check: God Interface — service with too many methods
+        for (var entry : services.entrySet()) {
+            if (entry.getValue().methods().size() > 7) {
+                warnings.add("God Interface: service '" + entry.getKey() + "' has " + entry.getValue().methods().size() + " methods (max recommended: 7)");
+            }
+        }
 
         // Check: provide completeness
         for (var entry : provides.entrySet()) {
@@ -212,6 +230,31 @@ public class TypeChecker {
         }
         varStates.clear();
         checkBlock(fn.body(), scope, fn.name(), fn.fails());
+
+        // Check: if function declares a return type, all paths must return
+        if (fn.returnType().isPresent() && !fn.body().statements().isEmpty()) {
+            if (!allPathsReturn(fn.body())) {
+                errors.add("Not all paths return a value in function '" + fn.name() + "'. Declared return type: " + fn.returnType().get().name());
+            }
+        }
+    }
+
+    private boolean allPathsReturn(Block block) {
+        if (block.statements().isEmpty()) return false;
+        var last = block.statements().get(block.statements().size() - 1);
+        return statementReturns(last);
+    }
+
+    private boolean statementReturns(Statement stmt) {
+        return switch (stmt) {
+            case ReturnStmt rs -> true;
+            case ExprStmt es -> true; // expression as last statement = implicit return
+            case IfStmt is -> is.elseBlock().isPresent()
+                    && allPathsReturn(is.thenBlock())
+                    && allPathsReturn(is.elseBlock().get());
+            case LetStmt ls -> false;
+            default -> false;
+        };
     }
 
     public void checkBlock(Block block, Map<String, TypeExpr> scope, String context, List<String> currentFails) {
@@ -413,6 +456,7 @@ public class TypeChecker {
             }
 
             case FnCall fc -> {
+                calledFunctions.add(fc.name());
                 if (fc.name().startsWith("__match__")) {
                     int armCount = Integer.parseInt(fc.name().substring("__match__".length()));
                     if (!fc.args().isEmpty()) {
