@@ -32,18 +32,21 @@
 
 ## Prossimo passo (loop di sviluppo)
 
-- [ ] **Derivare prototipi livello 3** — p2b è il vincitore (score 36). Tema: type-state o module system?
+- [x] **Derivare prototipi livello 3** — p3a e p3b implementati (score 55 entrambi). p3b vince per ceremony ratio (-216%).
+- [ ] **Derivare prototipi livello 4** — p3b è il vincitore. Tema possibile: module system (DAG, injection, service)
 
 ## Completati (2026-05-10)
 
-- [x] Documentazione di ricerca (9 documenti + loop sviluppo)
+- [x] Documentazione di ricerca (9 documenti + loop sviluppo + style)
 - [x] Database pattern/antipattern (93 entry)
-- [x] 4 compilatori funzionanti (p1, p2a, p2b, p2c)
+- [x] 6 compilatori funzionanti (p1, p2a, p2b, p2c, p3a, p3b)
 - [x] Test framework nativo (test/expect_error) su tutti i prototipi
-- [x] Benchmark Java (L1, L2, Math) con output di riferimento
+- [x] Benchmark Java (L1, L2, L3, Math) con output di riferimento
 - [x] Codegen funzionante (p2a): HLL → Java → esecuzione → output = reference
-- [x] Framework di scoring con formula e denominatori corretti
+- [x] Type-state verificato a compile-time (p3a, p3b)
+- [x] Framework di scoring con formula, denominatori corretti, ceremony ratio
 - [x] LANGUAGE.md, INTENT.md, LINEAGE.md, PROCEDURE.md
 - [x] Libreria hll.validation
 - [x] Sintassi Java/C (function, tipo-prima)
 - [x] Loop di sviluppo documentato (doc/09)
+- [x] Fix parser: methodCall prima di fieldAccess (tutti i prototipi)

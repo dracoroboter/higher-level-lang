@@ -5,7 +5,10 @@
 ```
 p1 "null train"
 ├──→ p2a "result chain"
-├──→ p2b "effect"
+├──→ p2b "effect" ← vincitore L2
+│    ├──→ p3a "state strict"
+│    ├──→ p3b "state light" ← vincitore L3 (meno ceremony)
+│    └──→ p3c "state runtime" ❌ scartato
 └──→ p2c "checked simple"
 ```
 
@@ -25,17 +28,17 @@ p1 "null train"
 
 Per ricostruire la genealogia completa di un prototipo, risali la colonna "Padri" ricorsivamente.
 
-Esempio: `p4c` con padri `p3b, p2b`
+Esempio: `p4c` con padri `p3b, p2a`
 ```
 p4c
 ├── p3b (padre 1)
-│   └── p2a
+│   └── p2b
 │       └── p1
-└── p2b (padre 2)
+└── p2a (padre 2)
     └── p1
 ```
 
-Significa: p4c eredita le capacità di p3b (che include p2a che include p1) + le capacità di p2b (che include p1).
+Significa: p4c eredita le capacità di p3b (che include p2b che include p1) + le capacità di p2a (che include p1).
 
 ## Convenzioni
 

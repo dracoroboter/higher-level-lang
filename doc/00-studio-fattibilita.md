@@ -68,6 +68,10 @@ doc/
 ├── 04-bibliografia.md             (paper accademici, Plaid, Wyvern, stato dell'arte)
 ├── 05-cinque-pilastri.md          (i 5 meccanismi del linguaggio + 15% irriducibile)
 ├── 06-strategia-prototipi.md      (decisioni pragmatiche, aliasing, piano prototipi)
+├── 07-prossimi-passi.md           (gestione eccezioni, validazione codice reale)
+├── 08-test-framework.md           (costrutto test/assert/expect_error/mock)
+├── 09-loop-sviluppo.md            (ciclo INTENT→BENCHMARK→IMPLEMENT→SCORE→COMPARE)
+├── STYLE.md                       (naming convention, lingue, builtin minimi)
 ├── db-design-patterns.md          (database: 47 design pattern con analisi)
 └── db-antipatterns.md             (database: 46 antipattern con analisi)
 ```
@@ -77,12 +81,13 @@ doc/
 - **Fase 1 (Catalogazione):** ✅ completata — 93 pattern/antipattern classificati
 - **Fase 2 (Analisi linguistica):** ✅ parziale — 6 territori con proposte di costrutto
 - **Fase 2b (Critica pilastri):** 🔲 da fare
-- **Fase 3 (Design core):** ✅ parziale — grammatica hll-p1 definita
-- **Fase 4 (Prototipo):** ✅ hll-p1 "null train" funzionante
-- **Fase 5 (Valutazione):** 🔲 da fare
+- **Fase 3 (Design core):** ✅ grammatica definita per tutti i prototipi
+- **Fase 4 (Prototipo):** ✅ 6 prototipi funzionanti (p1, p2a, p2b, p2c, p3a, p3b)
+- **Fase 5 (Valutazione):** ✅ parziale — scoring framework attivo, confronti in corso
 
-### Prototipo hll-p1 "null train"
-- Parser ANTLR + Type Checker + Code Generator Java
-- Rifiuta: accesso a Option senza match, null, tipi nominali sbagliati
-- Warning: violazione Legge di Demeter (catena > 2 livelli)
-- Genera Java source leggibile (record + Optional)
+### Risultati principali
+- **p3b "state light"** è il prototipo più avanzato (score 55)
+- Type-state verificato a compile-time: rifiuta use-before-open, use-after-close, double-close
+- Codegen funzionante: HLL → Java → esecuzione → output identico al reference
+- Test framework nativo nel linguaggio (`test`/`expect_error`)
+- Ceremony ratio misurato: p3b ha 216% meno cerimonia di p3a

@@ -22,6 +22,8 @@ Secondary questions:
 | p2a | "result chain" | Errors as values (Result + ?) | 35 | ✅ Working |
 | p2b | "effect" | Algebraic effects | 36 | ✅ Working |
 | p2c | "checked simple" | Improved checked exceptions | 30 | ✅ Working |
+| p3a | "state strict" | Typestate with mandatory rebinding | 55 | ✅ Working |
+| p3b | "state light" | Typestate with in-place mutation | 55 | ✅ Working |
 
 Score = weighted average of: correctness (30%), conciseness (25%), antipatterns blocked (25%), patterns included (20%). Scale 0–100, denominator is the full database (46 antipatterns + 47 patterns).
 
@@ -38,6 +40,12 @@ Score = weighted average of: correctness (30%), conciseness (25%), antipatterns 
 
 **p2c "checked simple"** (parent: p1)
 > Java's checked exceptions were the right idea with the wrong execution. Remove `throws Exception`, remove empty catches, make the syntax lightweight, and the model works. The function declares `fails E` — the caller must handle with an inline handler or propagate.
+
+**p3a "state strict"** (parent: p2b)
+> Resources with protocols (files, connections, transactions) declare their states and transitions. The compiler verifies at compile-time that operations only happen in the correct state. Ownership is mandatory — every transition consumes the value and produces a new one (rebinding).
+
+**p3b "state light"** (parent: p2b)
+> Same as p3a but with in-place mutation instead of rebinding. The compiler tracks state internally. Less ceremony (+216% fewer tokens than p3a for the same logic), same compile-time safety.
 
 ### Development Loop
 
@@ -110,10 +118,13 @@ Key characteristics:
 doc/                    Research documentation (Italian)
 prototypes/
 ├── LINEAGE.md          Prototype derivation graph
+├── PROCEDURE.md        How to create/test/score prototypes
 ├── p1/                 "null train" — null safety + nominal types
 ├── p2a/                "result chain" — Result<T,E> + ? operator
 ├── p2b/                "effect" — algebraic effects
 ├── p2c/                "checked simple" — improved checked exceptions
+├── p3a/                "state strict" — typestate with rebinding
+├── p3b/                "state light" — typestate with in-place mutation
 └── shared/             Shared code between prototypes
 tools/compare/          Benchmark framework and scoring
 TODO-LIST.md            Current task list
