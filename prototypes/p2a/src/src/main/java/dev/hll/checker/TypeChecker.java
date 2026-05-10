@@ -179,6 +179,18 @@ public class TypeChecker {
                 return null; // simplified for prototype
             }
 
+            case MatchExpr me -> {
+                var subjectType = inferType(me.subject(), scope, context);
+                // Check exhaustiveness
+                if (subjectType != null && subjectType.name().equals("Result") && me.arms().size() < 2) {
+                    errors.add("Non-exhaustive match on Result in '" + context + "': must handle both Ok and Err");
+                }
+                if (subjectType != null && subjectType.isOption() && me.arms().size() < 2) {
+                    errors.add("Non-exhaustive match on Option in '" + context + "': must handle both Some and None");
+                }
+                return null;
+            }
+
             case FnCall fc -> {
                 // Check match exhaustiveness on Result
                 if (fc.name().startsWith("__match__")) {

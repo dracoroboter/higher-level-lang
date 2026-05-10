@@ -129,7 +129,40 @@ public class JavaCodeGen {
             case ReturnStmt rs -> {
                 emit("return" + rs.value().map(v -> " " + generateExpr(v)).orElse("") + ";");
             }
-            case ExprStmt es -> emit(generateExpr(es.expr()) + ";");
+            case ExprStmt es -> {
+                if (es.expr() instanceof MatchExpr me) {
+                    // Match as statement — generate if/else
+                    String subject = generateExpr(me.subject());
+                    if (me.arms().size() >= 2) {
+                        var arm0 = me.arms().get(0);
+                        var arm1 = me.arms().get(1);
+                        if (arm0.pattern() instanceof SomePattern sp) {
+                            emit("if (" + subject + ".isPresent()) {");
+                            indent++;
+                            emit("var " + sp.binding() + " = " + subject + ".get();");
+                            emit("return " + generateExpr(arm0.body()) + ";");
+                            indent--;
+                            emit("} else {");
+                            indent++;
+                            emit("return " + generateExpr(arm1.body()) + ";");
+                            indent--;
+                            emit("}");
+                        } else {
+                            emit("if (" + subject + ") {");
+                            indent++;
+                            emit(generateExpr(arm0.body()) + ";");
+                            indent--;
+                            emit("} else {");
+                            indent++;
+                            emit(generateExpr(arm1.body()) + ";");
+                            indent--;
+                            emit("}");
+                        }
+                    }
+                } else {
+                    emit(generateExpr(es.expr()) + ";");
+                }
+            }
             case MatchStmt ms -> generateMatch(ms);
             case IfStmt is -> {
                 emit("if (" + generateExpr(is.condition()) + ") {");
@@ -181,7 +214,10 @@ public class JavaCodeGen {
 
     private String generateExpr(Expr expr) {
         return switch (expr) {
-            case Identifier id -> id.name();
+            case Identifier id -> {
+                if (id.name().equals("None")) yield "Optional.empty()";
+                else yield id.name();
+            }
             case StringLit sl -> "\"" + sl.value() + "\"";
             case NumberLit nl -> String.valueOf(nl.value());
             case FloatLit fl -> String.valueOf(fl.value());
@@ -200,11 +236,9 @@ public class JavaCodeGen {
                 if (typeAliases.contains(fc.name()) || structs.contains(fc.name())) {
                     yield "new " + fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
                 }
-                // Match expression placeholder — generate ternary or if/else
+                // Match expression placeholder — should not reach here with new MatchExpr node
                 if (fc.name().startsWith("__match__")) {
-                    // Simplified: for boolean match (true/false), generate ternary
-                    String subject = fc.args().isEmpty() ? "null" : generateExpr(fc.args().get(0));
-                    yield subject; // fallback — full match codegen needs more context
+                    yield "/* match placeholder */";
                 }
                 // Builtins
                 String args = fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
@@ -231,6 +265,22 @@ public class JavaCodeGen {
             }
             case UnaryOp uo -> uo.op() + generateExpr(uo.operand());
             case BlockExpr be -> "/* block */";
+            case MatchExpr me -> {
+                // Generate inline if/else for Option match, ternary for boolean match
+                String subject = generateExpr(me.subject());
+                if (me.arms().size() == 2) {
+                    var arm0 = me.arms().get(0);
+                    var arm1 = me.arms().get(1);
+                    if (arm0.pattern() instanceof SomePattern sp) {
+                        // Option match: subject.isPresent() ? ... : ...
+                        yield "(" + subject + ".isPresent() ? ((" + sp.binding() + " = " + subject + ".get()) != null ? " + generateExpr(arm0.body()) + " : null) : " + generateExpr(arm1.body()) + ")";
+                    } else if (arm0.pattern() instanceof Node.WildcardPattern) {
+                        // Boolean/value match: subject ? arm0 : arm1
+                        yield "(" + subject + " ? " + generateExpr(arm0.body()) + " : " + generateExpr(arm1.body()) + ")";
+                    }
+                }
+                yield "/* match */";
+            }
         };
     }
 

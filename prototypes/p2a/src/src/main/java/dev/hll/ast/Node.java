@@ -89,4 +89,6 @@ public sealed interface Node {
     record UnaryOp(String op, Expr operand) implements Expr {}
 
     record BlockExpr(Block block) implements Expr {}
+
+    record MatchExpr(Expr subject, List<MatchArm> arms) implements Expr {}
 }

@@ -307,8 +307,7 @@ public class AstBuilder extends HllBaseVisitor<Object> {
                     return new Node.MatchArm(pattern, body);
                 })
                 .collect(Collectors.toList());
-        // Return as FnCall with arms encoded — type checker will inspect
-        return new Node.FnCall("__match__" + arms.size(), List.of(subject));
+        return new Node.MatchExpr(subject, arms);
     }
 
     @Override

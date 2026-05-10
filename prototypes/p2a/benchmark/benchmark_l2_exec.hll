@@ -16,10 +16,10 @@ struct Customer {
     Option<Address> address
 }
 
-function customerCity(Customer c) -> String {
+function customerCity(Customer c) -> CityName {
     match c.address {
         Some(addr) => addr.city
-        None => "Unknown"
+        None => CityName("Unknown")
     }
 }
 
