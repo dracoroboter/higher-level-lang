@@ -1,0 +1,31 @@
+// Test: propagazione Option con ? e import Java
+// Deve compilare con successo
+
+type Query = String
+type UserId = Int
+
+import java "java.sql.Connection" as DBConn {
+    fn prepareStatement(sql: Query) -> Option<Statement>
+}
+
+import java "java.sql.Statement" as Statement {
+    fn executeQuery() -> Option<ResultSet>
+}
+
+import java "java.sql.ResultSet" as ResultSet {
+    fn getString(col: String) -> Option<String>
+}
+
+fn find_username(db: DBConn, id: UserId) -> Option<String> {
+    let stmt = db.prepareStatement(Query("SELECT name FROM users WHERE id = ?"))?
+    let rs = stmt.executeQuery()?
+    rs.getString("name")
+}
+
+fn main() {
+    let name = find_username(db, UserId(42))
+    match name {
+        Some(n) => println("Found: " + n)
+        None => println("User not found")
+    }
+}

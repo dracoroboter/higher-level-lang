@@ -1,0 +1,82 @@
+// Benchmark L1 — p1 "null train"
+// Equivalent to BenchmarkL1.java without antipatterns
+//
+// Antipatterns eliminated:
+// - NPE: address is Option, handled with match
+// - Stringly-typed: Email, Money, ZipCode sono tipi nominali
+// - Demeter: deep access wrapped in dedicated functions
+
+import hll.validation as validate
+
+type Email = String where validate.email()
+type ZipCode = String where validate.matches("^[0-9]{5}$")
+type MoneyAmount = String where validate.matches("^[0-9]+\\.[0-9]{2}$")
+type Country = String where validate.max_length(2)
+
+struct City {
+    name: String
+    zip: ZipCode
+}
+
+struct Address {
+    street: String
+    city: City
+    country: Country
+}
+
+struct Customer {
+    name: String
+    email: Email
+    address: Option<Address>
+}
+
+struct Money {
+    amount: MoneyAmount
+}
+
+struct Order {
+    id: Int
+    customer: Customer
+    total: Money
+    status: String
+}
+
+// Demeter-safe functions (encapsulated navigation)
+fn customer_city(order: Order) -> String {
+    match order.customer.address {
+        Some(addr) => addr.city.name
+        None => "Unknown"
+    }
+}
+
+fn customer_zip(order: Order) -> String {
+    match order.customer.address {
+        Some(addr) => addr.city.zip
+        None => "Unknown"
+    }
+}
+
+fn print_order(order: Order) {
+    println("Order #" + order.id)
+    println("Customer: " + order.customer.name)
+    println("Email: " + order.customer.email)
+    println("Total: " + order.total.amount)
+    println("City: " + customer_city(order))
+    println("Zip: " + customer_zip(order))
+}
+
+fn main(args: List<String>) {
+    let name = args.get(0)
+    let email = Email(args.get(1))
+    let amount = MoneyAmount(args.get(2))
+    let has_address = args.get(3) == "true"
+
+    let address: Option<Address> = match has_address {
+        true => Some(Address("Via Roma 1", City("Milano", ZipCode("20100")), Country("IT")))
+        false => None
+    }
+
+    let customer = Customer(name, email, address)
+    let order = Order(1, customer, Money(amount), "pending")
+    print_order(order)
+}

@@ -1,0 +1,20 @@
+// Test: accesso diretto a Option senza match
+// MUST BE REJECTED: address is Option<Address>, not Address
+
+type CityName = String
+
+struct Address {
+    city: CityName
+}
+
+struct Customer {
+    address: Option<Address>
+}
+
+struct Order {
+    customer: Customer
+}
+
+fn bad_city(order: Order) -> CityName {
+    order.customer.address.city  // ERROR: address is Option<Address>
+}

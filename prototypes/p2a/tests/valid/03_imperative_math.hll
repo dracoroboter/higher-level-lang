@@ -1,0 +1,55 @@
+// Test: funzioni pure matematiche in stile imperativo
+// Verifies that the language supports loops, local mutability, and pure computation
+
+function fibonacci(Int n) -> Int {
+    if n <= 1 { return n }
+    let mut a = 0
+    let mut b = 1
+    let mut i = 2
+    while i <= n {
+        let temp = b
+        b = a + b
+        a = temp
+        i = i + 1
+    }
+    return b
+}
+
+function factorial(Int n) -> Int {
+    let mut result = 1
+    let mut i = 1
+    while i <= n {
+        result = result * i
+        i = i + 1
+    }
+    return result
+}
+
+function is_prime(Int n) -> Bool {
+    if n < 2 { return false }
+    let mut i = 2
+    while i * i <= n {
+        if n % i == 0 { return false }
+        i = i + 1
+    }
+    return true
+}
+
+function gcd(Int a, Int b) -> Int {
+    let mut x = a
+    let mut y = b
+    while y != 0 {
+        let temp = y
+        y = x % y
+        x = temp
+    }
+    return x
+}
+
+function main() {
+    println("fib(10) = " + fibonacci(10))       // 55
+    println("fact(7) = " + factorial(7))         // 5040
+    println("prime(17) = " + is_prime(17))       // true
+    println("prime(15) = " + is_prime(15))       // false
+    println("gcd(48, 18) = " + gcd(48, 18))     // 6
+}

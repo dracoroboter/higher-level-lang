@@ -1,0 +1,12 @@
+// Test: passare String dove serve un tipo nominale
+// MUST BE REJECTED: "hello" is String, not Email
+
+type Email = String where matches("^.+@.+$")
+
+fn send(to: Email) {
+    println(to)
+}
+
+fn main() {
+    send("not-an-email")  // ERROR: String is not Email
+}

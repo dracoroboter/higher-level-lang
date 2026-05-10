@@ -1,0 +1,37 @@
+// Test: tipi nominali con validazione via libreria
+// Deve compilare con successo
+
+import hll.validation as validate
+
+type Email = String where validate.email()
+type CityName = String
+type OrderId = Int
+
+struct Address {
+    city: CityName
+    street: String
+}
+
+struct Customer {
+    name: String
+    email: Email
+    address: Option<Address>
+}
+
+struct Order {
+    id: OrderId
+    customer: Customer
+}
+
+fn shipping_city(order: Order) -> CityName {
+    match order.customer.address {
+        Some(addr) => addr.city
+        None => CityName("Unknown")
+    }
+}
+
+fn main() {
+    let order = Order(OrderId(1), Customer("Alice", Email("alice@example.com"), None))
+    let city = shipping_city(order)
+    println(city)
+}

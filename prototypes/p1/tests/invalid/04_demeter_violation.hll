@@ -1,0 +1,24 @@
+// Test: violazione Legge di Demeter (catena > 2 livelli)
+// DEVE GENERARE WARNING o ERRORE
+
+type ZipCode = String
+
+struct City {
+    zip: ZipCode
+}
+
+struct Address {
+    city: City
+}
+
+struct Customer {
+    address: Address
+}
+
+struct Order {
+    customer: Customer
+}
+
+fn get_zip(order: Order) -> ZipCode {
+    order.customer.address.city.zip  // WARNING: catena di 4 livelli
+}

@@ -1,0 +1,60 @@
+// BenchmarkMath.hll — Computazione pura imperativa
+// Output deve essere identico a BenchmarkMath.java sugli stessi input
+
+fn fibonacci(n: Int) -> Int {
+    if n <= 1 { return n }
+    let mut a = 0
+    let mut b = 1
+    let mut i = 2
+    while i <= n {
+        let temp = b
+        b = a + b
+        a = temp
+        i = i + 1
+    }
+    return b
+}
+
+fn factorial(n: Int) -> Int {
+    let mut result = 1
+    let mut i = 1
+    while i <= n {
+        result = result * i
+        i = i + 1
+    }
+    return result
+}
+
+fn is_prime(n: Int) -> Bool {
+    if n < 2 { return false }
+    let mut i = 2
+    while i * i <= n {
+        if n % i == 0 { return false }
+        i = i + 1
+    }
+    return true
+}
+
+fn gcd(a: Int, b: Int) -> Int {
+    let mut x = a
+    let mut y = b
+    while y != 0 {
+        let temp = y
+        y = x % y
+        x = temp
+    }
+    return x
+}
+
+fn main(args: List<String>) {
+    let fib_n = parse_int(args.get(0))
+    let fact_n = parse_int(args.get(1))
+    let prime_n = parse_int(args.get(2))
+    let gcd_a = parse_int(args.get(3))
+    let gcd_b = parse_int(args.get(4))
+
+    println("fib(" + fib_n + ") = " + fibonacci(fib_n))
+    println("fact(" + fact_n + ") = " + factorial(fact_n))
+    println("prime(" + prime_n + ") = " + is_prime(prime_n))
+    println("gcd(" + gcd_a + ", " + gcd_b + ") = " + gcd(gcd_a, gcd_b))
+}
