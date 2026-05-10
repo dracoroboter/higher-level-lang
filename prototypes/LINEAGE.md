@@ -14,9 +14,9 @@ p1 "null train"
 | Proto | Padri | Nickname | Tema | Stato | Score |
 |-------|-------|----------|------|-------|-------|
 | p1 | — | null train | null safety + tipi nominali + Demeter | ✅ funzionante | 28 |
-| p2a | p1 | result chain | eccezioni come valori (Result + ?) | ✅ funzionante | 25 |
-| p2b | p1 | effect | effetti algebrici dichiarati | 🔲 solo benchmark | n/d |
-| p2c | p1 | checked simple | checked exceptions migliorate | 🔲 solo benchmark | n/d |
+| p2a | p1 | result chain | eccezioni come valori (Result + ?) | ✅ funzionante | 35 |
+| p2b | p1 | effect | effetti algebrici dichiarati | ✅ funzionante | 36 |
+| p2c | p1 | checked simple | checked exceptions migliorate | ⚠️ parziale | 30 |
 
 ## Come leggere la genealogia
 

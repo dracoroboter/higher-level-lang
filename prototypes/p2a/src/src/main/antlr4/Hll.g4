@@ -12,6 +12,7 @@ declaration
     | structDecl
     | fnDecl
     | importDecl
+    | testDecl
     ;
 
 // --- Type declarations ---
@@ -60,6 +61,14 @@ importDecl
     | 'import' qualifiedName 'as' IDENT
     ;
 
+// --- Test declarations ---
+testDecl
+    : 'test' STRING block
+    ;
+
+// --- Statements (inside test and function bodies) ---
+// assert and expect_error are statements usable inside test blocks
+
 qualifiedName
     : IDENT ('.' IDENT)*
     ;
@@ -84,11 +93,21 @@ statement
     | returnStmt
     | whileStmt
     | ifStmt
+    | assertStmt
+    | expectErrorStmt
     | exprStmt
     ;
 
 letStmt
     : 'let' 'mut'? typeExpr? IDENT '=' expr
+    ;
+
+assertStmt
+    : 'assert' expr
+    ;
+
+expectErrorStmt
+    : 'expect_error' block
     ;
 
 assignStmt
@@ -166,6 +185,9 @@ args
 
 // Keywords
 FUNCTION : 'function' ;
+TEST    : 'test' ;
+ASSERT  : 'assert' ;
+EXPECT_ERROR : 'expect_error' ;
 TYPE    : 'type' ;
 STRUCT  : 'struct' ;
 LET     : 'let' ;

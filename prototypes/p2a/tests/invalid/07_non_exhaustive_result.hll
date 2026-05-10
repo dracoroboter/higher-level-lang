@@ -1,0 +1,16 @@
+// MUST BE REJECTED: match on Result only handles Ok, not Err (non-exhaustive)
+
+type Email = String where validate.email()
+struct InvalidEmail { String input }
+
+function parse_email(String input) -> Result<Email, InvalidEmail> {
+    Ok(Email(input))
+}
+
+function main() {
+    let result = parse_email("test@x.com")
+    match result {
+        Ok(email) => println(email)
+        // ERROR: missing Err case — non-exhaustive match on Result
+    }
+}

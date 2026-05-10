@@ -12,6 +12,7 @@ public class TypeChecker {
     private final Map<String, StructDecl> structs = new HashMap<>();
     private final Map<String, FnDecl> functions = new HashMap<>();
     private final Map<String, ImportDecl> imports = new HashMap<>();
+    private final Set<String> effectTypes = new HashSet<>();
     private final List<String> errors = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final int maxChainDepth;
@@ -36,7 +37,13 @@ public class TypeChecker {
                     typeAliases.put(td.name(), new TypeExpr(td.baseType(), Optional.empty()));
                     td.constraint().ifPresent(c -> typeConstraints.put(td.name(), c));
                 }
-                case StructDecl sd -> structs.put(sd.name(), sd);
+                case StructDecl sd -> {
+                    if (sd.name().startsWith("__effect__")) {
+                        effectTypes.add(sd.name().substring("__effect__".length()));
+                    } else {
+                        structs.put(sd.name(), sd);
+                    }
+                }
                 case FnDecl fd -> functions.put(fd.name(), fd);
                 case ImportDecl id -> imports.put(id.alias(), id);
             }
@@ -69,13 +76,32 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
+                // Check: effectful function assigned without handle
+                if (ls.value() instanceof FnCall fc) {
+                    var calledFn = functions.get(fc.name());
+                    var callerFn = functions.get(context);
+                    if (calledFn != null && !calledFn.effects().isEmpty()) {
+                        boolean callerPropagates = callerFn != null && callerFn.effects().containsAll(calledFn.effects());
+                        if (!callerPropagates) {
+                            errors.add("Function '" + fc.name() + "' has effects " + calledFn.effects() + " that are not handled. Use 'handle' to manage effects. In: " + context);
+                        }
+                    }
+                }
             }
             case ReturnStmt rs -> {
                 if (rs.value().isPresent()) {
                     inferType(rs.value().get(), scope, context);
                 }
             }
-            case ExprStmt es -> inferType(es.expr(), scope, context);
+            case ExprStmt es -> {
+                inferType(es.expr(), scope, context);
+                if (es.expr() instanceof FnCall fc) {
+                    var fn = functions.get(fc.name());
+                    if (fn != null && !fn.effects().isEmpty()) {
+                        errors.add("Function '" + fc.name() + "' has effects " + fn.effects() + " that are not handled. Use 'handle' to manage effects. In: " + context);
+                    }
+                }
+            }
             case MatchStmt ms -> checkMatch(ms, scope, context);
             case IfStmt is -> {
                 inferType(is.condition(), scope, context);
@@ -189,11 +215,16 @@ public class TypeChecker {
     private void checkNominalType(TypeExpr argType, TypeExpr paramType, String fnName, String paramName, String context) {
         if (argType == null || paramType == null) return;
         String paramTypeName = paramType.name();
-        // If param expects a nominal type (not a primitive) and arg is a raw primitive
+        String argTypeName = argType.name();
+        // If param expects a nominal type
         if (typeAliases.containsKey(paramTypeName)) {
-            String argTypeName = argType.name();
+            // Reject raw primitives
             if (argTypeName.equals("String") || argTypeName.equals("Int") || argTypeName.equals("Float") || argTypeName.equals("Bool")) {
                 errors.add("Type mismatch: cannot pass " + argTypeName + " as " + paramTypeName + " (parameter '" + paramName + "' of '" + fnName + "'). Use " + paramTypeName + "(...) constructor. In: " + context);
+            }
+            // Reject different nominal types
+            else if (typeAliases.containsKey(argTypeName) && !argTypeName.equals(paramTypeName)) {
+                errors.add("Type mismatch: cannot pass " + argTypeName + " as " + paramTypeName + " (parameter '" + paramName + "' of '" + fnName + "'). These are distinct nominal types. In: " + context);
             }
         }
     }

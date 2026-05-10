@@ -3,12 +3,19 @@
 ## Priorità alta
 
 - [x] **Fix bug NPE p2b** — risolto: type checker reso null-safe, rimossi `;` dal benchmark
-- [ ] **Scrivere più test invalid** — il punteggio antipattern è 6.5% (3/46). Servono test per: parametri scambiati, SQL injection, exception swallowing, Result ignorato, errori non gestiti
+- [ ] **Batteria di test del compilatore** — test che verificano la correttezza del compilatore stesso (non del linguaggio). Per ogni feature del type checker, un test che verifica: a) codice valido accettato, b) codice invalido rifiutato con il messaggio giusto. Usa il costrutto `expect_error` quando implementato, altrimenti file separati valid/invalid.
+- [ ] **Fix parametri scambiati** — ✅ RISOLTO per p2a/p2b/p2c
+- [ ] **Implementare verifica gestione errori** — la feature differenziante dei prototipi L2 non è implementata:
+  - p2a: verificare che Result sia consumato + match esaustivo su Result
+  - p2b: verificare che effetti dichiarati siano gestiti dal chiamante
+  - p2c: verificare che fails dichiarato sia gestito con | handler
+  - SENZA QUESTE FEATURE IL CONFRONTO TRA PROTOTIPI NON È SIGNIFICATIVO
+- [ ] **Scrivere più test invalid** — il punteggio antipattern è 6.5% (3/46). Servono test per: Result ignorato, match non esaustivo, effect non gestito
 - [ ] **Fix codegen (while, match-expr, costruttori)** — il Java generato ha placeholder (`__while__`) e costruttori non corretti. Serve per eseguire il codice e confrontare output con reference oracle
 
 ## Priorità media
 
-- [ ] **Unit test e mocking inerenti** — il linguaggio deve avere un meccanismo nativo per scrivere unit test e mockare comportamenti (non una libreria esterna). Possibile costrutto `test` + injection automatica di mock per i `service`/dipendenze.
+- [ ] **Unit test e mocking inerenti** — il linguaggio deve avere un meccanismo nativo per scrivere unit test e mockare comportamenti. Costrutto `test` + `assert` + `expect_error` (compile-time) + `mock` (futuro). Vedi `doc/08-test-framework.md`.
 - [ ] **Fase 2b: critica dei pilastri** — per ogni pilastro: limiti, trade-off, tensioni con gli altri. Documentata nel piano ma non ancora fatta
 - [ ] **Migliorare ciclo di test** — creare jar eseguibile + script batch (`tools/compare/run_all.sh`) per non lanciare Maven ogni volta
 - [ ] **Separatore di statement** — decidere se usare `;` opzionale, newline significativo, o lasciare l'approccio attuale (newline implicito come Go/Kotlin). Attualmente il linguaggio non ha separatore esplicito e il parser distingue gli statement dalla struttura sintattica.

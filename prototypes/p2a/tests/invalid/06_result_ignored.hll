@@ -1,0 +1,13 @@
+// MUST BE REJECTED: Result of a fallible function is ignored (not consumed)
+
+type Email = String where validate.email()
+struct InvalidEmail { String input }
+
+function parse_email(String input) -> Result<Email, InvalidEmail> {
+    Ok(Email(input))
+}
+
+function main() {
+    parse_email("test@x.com")  // ERROR: Result not consumed — must handle or assign
+    println("done")
+}

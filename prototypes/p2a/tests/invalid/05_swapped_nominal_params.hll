@@ -1,0 +1,17 @@
+// MUST BE REJECTED: Email and URL are different nominal types, cannot be swapped
+
+import hll.validation as validate
+
+type Email = String where validate.email()
+type URL = String where validate.url()
+
+function send_notification(Email to, URL link) {
+    println(to)
+    println(link)
+}
+
+function main() {
+    let Email email = Email("alice@example.com")
+    let URL url = URL("https://example.com")
+    send_notification(url, email)  // ERROR: URL is not Email, Email is not URL
+}

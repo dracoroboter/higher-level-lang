@@ -73,8 +73,30 @@
 
 | | Math | L2 | Invalid rejected |
 |---|---|---|---|
-| p2a | ✅ | ✅ | 3/4 |
-| p2b | ✅ | ✅ | 3/4 |
-| p2c | ✅ | ✅ | 3/4 |
+| p2a | ✅ | ✅ | 5/9 (2 non implementati) |
+| p2b | ✅ | ✅ | 5/8 (1 crash NPE) |
+| p2c | ✅ | ✅ | 5/8 (1 crash NPE) |
+
+### ATTENZIONE: falsi positivi nei test
+
+I test specifici per la gestione errori (effect_not_handled, fails_not_handled, result_ignored, non_exhaustive_result) **NON funzionano correttamente**:
+
+- p2b/p2c: il test "not handled" causa un NPE nel compilatore (crash, non rifiuto intenzionale)
+- p2a: i test "result ignored" e "non exhaustive" sono accettati (feature non implementata)
+
+**Cosa funziona realmente in tutti i prototipi:**
+- ✅ Parsing della sintassi specifica (Result/effects/fails)
+- ✅ Null safety (Option obbligatorio)
+- ✅ Tipi nominali (incluso rifiuto di tipi diversi scambiati)
+- ✅ SQL injection prevention
+- ✅ Demeter warning
+
+**Cosa NON funziona ancora:**
+- ❌ Verifica che Result sia consumato (p2a)
+- ❌ Verifica che match su Result sia esaustivo (p2a)
+- ❌ Verifica che effetti siano gestiti (p2b)
+- ❌ Verifica che fails sia gestito (p2c)
+
+Queste sono le feature **differenzianti** tra i prototipi — senza di esse il confronto non è significativo.
 
 Tutti i prototipi di livello 2 funzionano con la nuova sintassi.

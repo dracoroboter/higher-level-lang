@@ -15,7 +15,7 @@ public sealed interface Node {
 
     record StructDecl(String name, List<Field> fields) implements Declaration {}
 
-    record FnDecl(String name, List<Param> params, Optional<TypeExpr> returnType, Block body) implements Declaration {}
+    record FnDecl(String name, List<Param> params, Optional<TypeExpr> returnType, List<String> effects, Block body) implements Declaration {}
 
     record ImportDecl(String javaClass, String alias, List<JavaMapping> mappings) implements Declaration {}
 
@@ -34,7 +34,7 @@ public sealed interface Node {
 
     sealed interface Statement extends Node {}
 
-    record LetStmt(String name, Optional<TypeExpr> type, Expr value) implements Statement {}
+    record LetStmt(String name, Optional<TypeExpr> type, Expr value, boolean hasErrorHandler) implements Statement {}
 
     record ReturnStmt(Optional<Expr> value) implements Statement {}
 

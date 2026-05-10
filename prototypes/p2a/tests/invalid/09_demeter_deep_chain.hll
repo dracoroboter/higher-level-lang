@@ -1,0 +1,23 @@
+// MUST GENERATE WARNING: Law of Demeter violation (chain > 2 levels)
+
+type ZipCode = String
+
+struct City {
+    ZipCode zip
+}
+
+struct Address {
+    City city
+}
+
+struct Customer {
+    Address address
+}
+
+struct Order {
+    Customer customer
+}
+
+function get_zip(Order order) -> ZipCode {
+    order.customer.address.city.zip  // WARNING: chain depth 4 exceeds max 2
+}

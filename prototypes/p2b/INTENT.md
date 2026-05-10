@@ -50,4 +50,7 @@ let name = handle load_user(path, id) {
 - Curva di apprendimento più alta per il programmatore
 
 ### Stato
-🔲 Da implementare
+✅ Funzionante (2026-05-10)
+- 7/9 test invalid rifiutati correttamente (2 sono warning by design)
+- 2/2 benchmark compilano
+- Verifica effetti non gestiti: implementata

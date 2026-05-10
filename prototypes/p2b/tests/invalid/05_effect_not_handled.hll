@@ -1,0 +1,13 @@
+// MUST BE REJECTED: effect not handled by caller
+
+effect InvalidEmail { String input }
+
+function parse_email(String input) -> Email
+    effects { InvalidEmail } {
+    raise InvalidEmail(input)
+}
+
+function main() {
+    let email = parse_email("bad")  // ERROR: InvalidEmail effect not handled
+    println(email)
+}

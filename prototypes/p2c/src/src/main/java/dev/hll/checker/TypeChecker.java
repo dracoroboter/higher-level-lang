@@ -69,6 +69,17 @@ public class TypeChecker {
             case LetStmt ls -> {
                 var exprType = inferType(ls.value(), scope, context);
                 scope.put(ls.name(), ls.type().orElse(exprType));
+                // Check: function with fails called without | handler
+                if (ls.value() instanceof FnCall fc && !ls.hasErrorHandler()) {
+                    var calledFn = functions.get(fc.name());
+                    var callerFn = functions.get(context);
+                    if (calledFn != null && !calledFn.effects().isEmpty()) {
+                        boolean callerPropagates = callerFn != null && callerFn.effects().containsAll(calledFn.effects());
+                        if (!callerPropagates) {
+                            errors.add("Function '" + fc.name() + "' fails with " + calledFn.effects() + " but errors are not handled. Use '| ErrorType(e) => ...' handler. In: " + context);
+                        }
+                    }
+                }
             }
             case ReturnStmt rs -> {
                 if (rs.value().isPresent()) {
@@ -105,6 +116,7 @@ public class TypeChecker {
     }
 
     private TypeExpr inferType(Expr expr, Map<String, TypeExpr> scope, String context, int chainDepth) {
+        if (expr == null) return null;
         switch (expr) {
             case Identifier id -> {
                 if (id.name().equals("null")) {
@@ -188,11 +200,16 @@ public class TypeChecker {
     private void checkNominalType(TypeExpr argType, TypeExpr paramType, String fnName, String paramName, String context) {
         if (argType == null || paramType == null) return;
         String paramTypeName = paramType.name();
-        // If param expects a nominal type (not a primitive) and arg is a raw primitive
+        String argTypeName = argType.name();
+        // If param expects a nominal type
         if (typeAliases.containsKey(paramTypeName)) {
-            String argTypeName = argType.name();
+            // Reject raw primitives
             if (argTypeName.equals("String") || argTypeName.equals("Int") || argTypeName.equals("Float") || argTypeName.equals("Bool")) {
                 errors.add("Type mismatch: cannot pass " + argTypeName + " as " + paramTypeName + " (parameter '" + paramName + "' of '" + fnName + "'). Use " + paramTypeName + "(...) constructor. In: " + context);
+            }
+            // Reject different nominal types
+            else if (typeAliases.containsKey(argTypeName) && !argTypeName.equals(paramTypeName)) {
+                errors.add("Type mismatch: cannot pass " + argTypeName + " as " + paramTypeName + " (parameter '" + paramName + "' of '" + fnName + "'). These are distinct nominal types. In: " + context);
             }
         }
     }

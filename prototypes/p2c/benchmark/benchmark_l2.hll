@@ -33,14 +33,14 @@ struct Order { Int id, Customer customer, Money total, String status }
 
 // Validation — declares fails, auto-propagation if caller declares it
 function parse_email(String input) -> Email fails InvalidEmail {
-    match validate.email().test(input) {
+    match validate.email().check(input) {
         true => Email(input)
         false => fail InvalidEmail(input)
     }
 }
 
 function parse_money(String input) -> MoneyAmount fails InvalidAmount {
-    match validate.matches("^[0-9]+\\.[0-9]{2}$").test(input) {
+    match validate.matches("^[0-9]+\\.[0-9]{2}$").check(input) {
         true => MoneyAmount(input)
         false => fail InvalidAmount(input)
     }

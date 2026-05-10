@@ -65,8 +65,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
         Optional<Node.TypeExpr> returnType = ctx.typeExpr() != null
                 ? Optional.of(buildTypeExpr(ctx.typeExpr()))
                 : Optional.empty();
+        List<String> fails = List.of();
+        if (ctx.failsClause() != null) {
+            fails = ctx.failsClause().IDENT().stream()
+                    .map(t -> t.getText())
+                    .collect(Collectors.toList());
+        }
         Node.Block body = buildBlock(ctx.block());
-        return new Node.FnDecl(name, params, returnType, body);
+        return new Node.FnDecl(name, params, returnType, fails, body);
     }
 
     @Override
@@ -115,7 +121,8 @@ public class AstBuilder extends HllBaseVisitor<Object> {
                 ? Optional.of(buildTypeExpr(ctx.typeExpr()))
                 : Optional.empty();
         Node.Expr value = (Node.Expr) visit(ctx.expr());
-        return new Node.LetStmt(name, type, value);
+        boolean hasHandler = ctx.errorHandler() != null && !ctx.errorHandler().isEmpty();
+        return new Node.LetStmt(name, type, value, hasHandler);
     }
 
     @Override

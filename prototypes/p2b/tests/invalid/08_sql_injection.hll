@@ -1,0 +1,12 @@
+// MUST BE REJECTED: passing raw String where Query type is expected (SQL injection prevention)
+
+type Query = String
+
+function execute(Query sql) {
+    println(sql)
+}
+
+function main() {
+    let user_input = "Robert'; DROP TABLE users;--"
+    execute(user_input)  // ERROR: String is not Query
+}

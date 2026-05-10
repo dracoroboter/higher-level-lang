@@ -133,6 +133,25 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitTestDecl(HllParser.TestDeclContext ctx) {
+        String desc = ctx.STRING().getText().replace("\"", "");
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.TestDecl(desc, body);
+    }
+
+    @Override
+    public Object visitAssertStmt(HllParser.AssertStmtContext ctx) {
+        Node.Expr cond = (Node.Expr) visit(ctx.expr());
+        return new Node.AssertStmt(cond);
+    }
+
+    @Override
+    public Object visitExpectErrorStmt(HllParser.ExpectErrorStmtContext ctx) {
+        Node.Block body = buildBlock(ctx.block());
+        return new Node.ExpectErrorStmt(body);
+    }
+
+    @Override
     public Object visitReturnStmt(HllParser.ReturnStmtContext ctx) {
         Optional<Node.Expr> value = ctx.expr() != null
                 ? Optional.of((Node.Expr) visit(ctx.expr()))
@@ -288,7 +307,8 @@ public class AstBuilder extends HllBaseVisitor<Object> {
                     return new Node.MatchArm(pattern, body);
                 })
                 .collect(Collectors.toList());
-        return new Node.FnCall("__match__", List.of(subject)); // simplified for now
+        // Return as FnCall with arms encoded — type checker will inspect
+        return new Node.FnCall("__match__" + arms.size(), List.of(subject));
     }
 
     @Override

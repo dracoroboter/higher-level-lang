@@ -1,0 +1,12 @@
+// MUST BE REJECTED: error from fails not handled by caller
+
+struct InvalidEmail { String input }
+
+function parse_email(String input) -> Email fails InvalidEmail {
+    fail InvalidEmail(input)
+}
+
+function main() {
+    let email = parse_email("bad")  // ERROR: InvalidEmail not handled (no | handler)
+    println(email)
+}

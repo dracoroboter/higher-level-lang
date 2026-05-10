@@ -40,4 +40,7 @@ fn load_user(path: FilePath) -> Result<UserName, AppError> {
 - Non c'è distinzione nativa tra errori recuperabili e fatali (serve convenzione)
 
 ### Stato
-🔲 Da implementare
+✅ Funzionante (2026-05-10)
+- 7/10 test invalid rifiutati correttamente
+- 2/2 benchmark compilano
+- Non implementato: match non-esaustivo su Result (test 07)

@@ -12,13 +12,27 @@ public class AstBuilder extends HllBaseVisitor<Object> {
 
     public Node.Program buildProgram(HllParser.ProgramContext ctx) {
         var decls = ctx.declaration().stream()
-                .map(d -> {
-                    try { return (Node.Declaration) visit(d); }
-                    catch (Exception e) { return null; }
-                })
+                .map(d -> (Node.Declaration) visitDeclaration(d))
                 .filter(d -> d != null)
                 .collect(Collectors.toList());
         return new Node.Program(decls);
+    }
+
+    public Node.Declaration visitDeclaration(HllParser.DeclarationContext ctx) {
+        if (ctx.typeDecl() != null) return (Node.Declaration) visit(ctx.typeDecl());
+        if (ctx.unionTypeDecl() != null) return (Node.Declaration) visit(ctx.unionTypeDecl());
+        if (ctx.structDecl() != null) return (Node.Declaration) visit(ctx.structDecl());
+        if (ctx.effectDecl() != null) {
+            var ec = ctx.effectDecl();
+            String name = ec.IDENT().getText();
+            var fields = ec.fieldDecl().stream()
+                    .map(f -> new Node.Field(f.IDENT().getText(), buildTypeExpr(f.typeExpr())))
+                    .collect(Collectors.toList());
+            return new Node.StructDecl("__effect__" + name, fields);
+        }
+        if (ctx.fnDecl() != null) return (Node.Declaration) visit(ctx.fnDecl());
+        if (ctx.importDecl() != null) return (Node.Declaration) visit(ctx.importDecl());
+        return null;
     }
 
     @Override
@@ -69,8 +83,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
         Optional<Node.TypeExpr> returnType = ctx.typeExpr() != null
                 ? Optional.of(buildTypeExpr(ctx.typeExpr()))
                 : Optional.empty();
+        List<String> effects = List.of();
+        if (ctx.effectsClause() != null) {
+            effects = ctx.effectsClause().IDENT().stream()
+                    .map(t -> t.getText())
+                    .collect(Collectors.toList());
+        }
         Node.Block body = buildBlock(ctx.block());
-        return new Node.FnDecl(name, params, returnType, body);
+        return new Node.FnDecl(name, params, returnType, effects, body);
     }
 
     @Override

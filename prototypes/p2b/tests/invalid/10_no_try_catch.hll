@@ -1,0 +1,10 @@
+// MUST BE REJECTED: try/catch does not exist in HLL
+// Errors are handled via Result<T,E> and match, not exceptions
+
+function main() {
+    try {
+        let x = risky_operation()
+    } catch (Exception e) {
+        println("caught")
+    }
+}

@@ -46,4 +46,8 @@ let name = load_user(path, id)
 - Meno potente degli effetti algebrici (solo errori, non IO/logging/stato)
 
 ### Stato
-🔲 Da implementare
+⚠️ Parzialmente funzionante (2026-05-10)
+- 7/9 test invalid rifiutati correttamente (2 sono warning by design)
+- 1/2 benchmark compilano (benchmark L2 fallisce: | handler non riconosciuto come gestione valida)
+- Verifica fails non gestito: implementata
+- Non implementato: riconoscimento | handler inline come gestione
