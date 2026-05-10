@@ -155,8 +155,8 @@ exprStmt
 // --- Expressions ---
 expr
     : primary                                   # primaryExpr
-    | expr '.' IDENT                            # fieldAccess
     | expr '.' IDENT '(' args? ')'             # methodCall
+    | expr '.' IDENT                            # fieldAccess
     | expr '?'                                  # optionPropagate
     | expr op=('*' | '/' | '%') expr            # mulDiv
     | expr op=('+' | '-') expr                  # addSub

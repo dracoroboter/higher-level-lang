@@ -1,0 +1,32 @@
+// Benchmark L3 — p3b "state light"
+// Equivalent to BenchmarkL3.java "happy" scenario without antipatterns
+//
+// Antipatterns eliminated (from p2b):
+// - NPE, Stringly-typed, Demeter, Effects not handled
+// Antipatterns eliminated (new):
+// - Use before open: send() only available in Connected state
+// - Use after close: no methods available in Closed state
+// - Double close: disconnect() not available in Closed state
+// - Resource leak: compiler warns if Connection never reaches Closed
+
+import hll.validation as validate
+
+state Connection {
+    Disconnected {
+        function connect() -> Connected
+    }
+    Connected {
+        function send(String data) -> Connected
+        function disconnect() -> Closed
+    }
+    Closed { }
+}
+
+function main() {
+    let conn = Connection.new()
+    conn.connect()
+    conn.send("hello")
+    conn.send("world")
+    conn.disconnect()
+    printLn("done")
+}

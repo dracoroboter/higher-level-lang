@@ -10,6 +10,8 @@ declaration
     : typeDecl
     | unionTypeDecl
     | structDecl
+    | stateDecl
+    | effectDecl
     | fnDecl
     | importDecl
     | testDecl
@@ -38,17 +40,35 @@ structDecl
     : 'struct' IDENT '{' fieldDecl (',' fieldDecl)* '}'
     ;
 
+// --- Effect declarations ---
+effectDecl
+    : 'effect' IDENT '{' fieldDecl (',' fieldDecl)* '}'
+    ;
+
+// --- State declarations ---
+stateDecl
+    : 'state' IDENT '{' stateVariant+ '}'
+    ;
+
+stateVariant
+    : IDENT '{' stateFn* '}'
+    ;
+
+stateFn
+    : 'function' IDENT '(' params? ')' '->' IDENT
+    ;
+
 fieldDecl
     : typeExpr IDENT
     ;
 
 // --- Function declarations ---
 fnDecl
-    : 'function' IDENT '(' params? ')' ('->' typeExpr)? failsClause? block
+    : 'function' IDENT '(' params? ')' ('->' typeExpr)? effectsClause? block
     ;
 
-failsClause
-    : 'fails' IDENT (',' IDENT)*
+effectsClause
+    : 'effects' '{' IDENT (',' IDENT)* '}'
     ;
 
 params
@@ -89,20 +109,16 @@ block
 statement
     : letStmt
     | returnStmt
+    | ifStmt
     | whileStmt
     | assignStmt
-    | ifStmt
     | assertStmt
     | expectErrorStmt
     | exprStmt
     ;
 
 letStmt
-    : 'let' 'mut'? typeExpr? IDENT '=' expr errorHandler*
-    ;
-
-errorHandler
-    : '|' pattern '=>' (expr | block)
+    : 'let' 'mut'? typeExpr? IDENT '=' expr
     ;
 
 returnStmt
@@ -141,6 +157,7 @@ expectErrorStmt
 assignStmt
     : IDENT '=' expr
     ;
+
 ifStmt
     : 'if' expr block ('else' block)?
     ;
@@ -170,7 +187,8 @@ primary
     | 'Err' '(' expr ')'                        # errExpr
     | 'Some' '(' expr ')'                       # someExpr
     | 'None'                                    # noneLit
-    | 'fail' IDENT '(' args? ')'               # failExpr
+    | 'raise' IDENT '(' args? ')'              # raiseExpr
+    | 'handle' expr '{' matchArm+ '}'          # handleExpr
     | IDENT                                     # identifier
     | STRING                                    # stringLit
     | NUMBER                                    # numberLit
@@ -188,8 +206,11 @@ args
 // Keywords (order matters — longer first)
 TYPE    : 'type' ;
 STRUCT  : 'struct' ;
-FAILS   : 'fails' ;
-FAIL    : 'fail' ;
+STATE   : 'state' ;
+EFFECT  : 'effect' ;
+EFFECTS : 'effects' ;
+HANDLE  : 'handle' ;
+RAISE   : 'raise' ;
 FN      : 'function' ;
 LET     : 'let' ;
 RETURN  : 'return' ;
