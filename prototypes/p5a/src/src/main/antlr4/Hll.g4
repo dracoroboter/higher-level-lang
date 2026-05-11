@@ -258,6 +258,7 @@ primary
     | 'spawn' IDENT                             # spawnExpr
     | 'await' expr                              # awaitExpr
     | '|' IDENT '|' expr                        # lambdaExpr
+    | '|' IDENT ',' IDENT '|' expr              # lambda2Expr
     | IDENT                                     # identifier
     | STRING                                    # stringLit
     | NUMBER                                    # numberLit

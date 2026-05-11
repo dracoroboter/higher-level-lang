@@ -126,4 +126,6 @@ public sealed interface Node {
     record AwaitExpr(Expr expr) implements Expr {}
 
     record LambdaExpr(String param, Expr body) implements Expr {}
+
+    record Lambda2Expr(String param1, String param2, Expr body) implements Expr {}
 }

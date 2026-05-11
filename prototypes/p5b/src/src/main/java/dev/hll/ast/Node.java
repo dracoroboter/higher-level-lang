@@ -124,4 +124,6 @@ public sealed interface Node {
     record SpawnExpr(String serviceName) implements Expr {}
 
     record AwaitExpr(Expr expr) implements Expr {}
+
+    record ForExpr(String varName, Expr iterable, List<Expr> whenClauses, Optional<Expr> take, Optional<Expr> yieldExpr, Optional<String> intoFn, Optional<Expr> intoArg) implements Expr {}
 }

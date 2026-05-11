@@ -359,6 +359,14 @@ public class TypeChecker {
                 inferType(fi.iterable(), scope, context);
                 var innerScope = new HashMap<>(scope);
                 innerScope.put(fi.varName(), null);
+                // Check: no reassignment of iterated collection in body
+                if (fi.iterable() instanceof Identifier iterVar) {
+                    for (var bodyStmt : fi.body().statements()) {
+                        if (bodyStmt instanceof AssignStmt as && as.name().equals(iterVar.name())) {
+                            errors.add("Cannot reassign '" + iterVar.name() + "' while iterating over it (concurrent modification). In: " + context);
+                        }
+                    }
+                }
                 checkBlock(fi.body(), innerScope, context, currentFails);
             }
             case AssignStmt as2 -> inferType(as2.value(), scope, context);
@@ -539,6 +547,14 @@ public class TypeChecker {
                 lambdaScope.put(le.param(), null);
                 inferType(le.body(), lambdaScope, context);
                 return null; // lambda type
+            }
+
+            case Lambda2Expr le -> {
+                var lambdaScope = new HashMap<>(scope);
+                lambdaScope.put(le.param1(), null);
+                lambdaScope.put(le.param2(), null);
+                inferType(le.body(), lambdaScope, context);
+                return null;
             }
 
             case OptionPropagate op -> {

@@ -15,6 +15,9 @@ public class JavaCodeGen {
 
     public String generate(Program program) {
         emit("import java.util.Optional;");
+        emit("import java.util.List;");
+        emit("import java.util.ArrayList;");
+        emit("import java.util.stream.*;");
         emit("");
         emit("public class HllGenerated {");
         indent++;
@@ -254,11 +257,26 @@ public class JavaCodeGen {
                 if (mc.method().equals("get") && obj.equals("args")) {
                     yield "args[" + mArgs + "]";
                 }
+                // Stream operations: .filter/.map need .stream() prefix
+                if ((mc.method().equals("filter") || mc.method().equals("map")) && !mc.args().isEmpty() && mc.args().get(0) instanceof LambdaExpr) {
+                    yield obj + ".stream()." + mc.method() + "(" + mArgs + ").collect(Collectors.toList())";
+                }
+                // .reduce(init, lambda)
+                if (mc.method().equals("reduce") && mc.args().size() == 2 && (mc.args().get(1) instanceof LambdaExpr || mc.args().get(1) instanceof Lambda2Expr)) {
+                    String init = generateExpr(mc.args().get(0));
+                    String lambda = generateExpr(mc.args().get(1));
+                    yield obj + ".stream().reduce(" + init + ", " + lambda + ", Integer::sum)";
+                }
                 yield obj + "." + mc.method() + "(" + mArgs + ")";
             }
             case FnCall fc -> {
                 if (typeAliases.contains(fc.name()) || structs.contains(fc.name())) {
                     yield "new " + fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
+                }
+                // List constructor
+                if (fc.name().equals("List")) {
+                    String items = fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
+                    yield "List.of(" + items + ")";
                 }
                 // Match expression placeholder — should not reach here with new MatchExpr node
                 if (fc.name().startsWith("__match__")) {
@@ -312,6 +330,7 @@ public class JavaCodeGen {
             case SpawnExpr se -> "new " + se.serviceName() + "Actor()";
             case AwaitExpr ae -> generateExpr(ae.expr()) + ".get()";
             case LambdaExpr le -> le.param() + " -> " + generateExpr(le.body());
+            case Lambda2Expr le -> "(" + le.param1() + ", " + le.param2() + ") -> " + generateExpr(le.body());
         };
     }
 
@@ -319,12 +338,25 @@ public class JavaCodeGen {
         if (type.isOption()) {
             return "Optional<" + javaType(type.inner()) + ">";
         }
+        if (type.name().equals("List") && type.typeArg().isPresent()) {
+            return "List<" + javaTypeBoxed(type.inner()) + ">";
+        }
         return switch (type.name()) {
             case "String" -> "String";
             case "Int" -> "int";
             case "Float" -> "double";
             case "Bool" -> "boolean";
+            case "List" -> "List<Object>";
             default -> type.name();
+        };
+    }
+
+    private String javaTypeBoxed(TypeExpr type) {
+        return switch (type.name()) {
+            case "Int" -> "Integer";
+            case "Float" -> "Double";
+            case "Bool" -> "Boolean";
+            default -> javaType(type);
         };
     }
 

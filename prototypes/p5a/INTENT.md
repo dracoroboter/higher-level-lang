@@ -56,8 +56,10 @@ for order in orders.filter(|o| o.amount > 100) {
 - Java Streams: Goetz "State of the Lambda" (2013)
 
 ### Stato
-⚠️ Parzialmente implementato (2026-05-10)
-- for-in + lambda (`|param| expr`) funzionanti
-- Score: 59 (25 test invalid + 8 blocked by design)
-- Perde contro p5b (62) perché non enforced purezza nelle pipeline
+✅ Funzionante (2026-05-12)
+- for-in + lambda (`|param| expr`, `|p1, p2| expr`) funzionanti
+- `.filter()`, `.map()`, `.reduce()` con lambda → Java streams
+- `List<T>` builtin con costruttore `List(...)`
+- Concurrent modification bloccata a compile-time
+- Score: 58 (26 test invalid + 8 blocked by design)
 

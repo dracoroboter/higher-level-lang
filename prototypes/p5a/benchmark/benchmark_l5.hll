@@ -1,0 +1,41 @@
+// Benchmark L5 — Iteration with lambda pipeline (p5a)
+// Demonstrates: for-in, .filter(), .map(), .reduce()
+module iteration
+
+type OrderId = String
+type Amount = Int
+
+struct Order {
+    OrderId id,
+    Amount amount,
+    String status
+}
+
+function main() {
+    let orders = List(
+        Order(OrderId("O1"), Amount(50), "pending"),
+        Order(OrderId("O2"), Amount(150), "confirmed"),
+        Order(OrderId("O3"), Amount(200), "confirmed"),
+        Order(OrderId("O4"), Amount(30), "cancelled")
+    )
+
+    // Imperative for-in
+    for order in orders {
+        println(order.id)
+    }
+
+    // Filter with lambda
+    let big = orders.filter(|o| o.amount > 100)
+
+    // Map with lambda
+    let ids = orders.map(|o| o.id)
+
+    // Reduce with 2-param lambda
+    let total = orders
+        .filter(|o| o.status.equals("confirmed"))
+        .reduce(0, |acc, o| acc + o.amount)
+
+    println(big)
+    println(ids)
+    println(total)
+}

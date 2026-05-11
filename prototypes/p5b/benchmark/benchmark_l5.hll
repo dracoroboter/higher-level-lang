@@ -1,0 +1,50 @@
+// Benchmark L5 — Iteration with declarative clauses (p5b)
+// Demonstrates: for-in, when (pure filter), yield, into, take
+module iteration
+
+type OrderId = String
+type Amount = Int
+
+struct Order {
+    OrderId id,
+    Amount amount,
+    String status
+}
+
+function main() {
+    let orders = List(
+        Order(OrderId("O1"), Amount(50), "pending"),
+        Order(OrderId("O2"), Amount(150), "confirmed"),
+        Order(OrderId("O3"), Amount(200), "confirmed"),
+        Order(OrderId("O4"), Amount(30), "cancelled")
+    )
+
+    // Pure filter + imperative body (I/O visible)
+    for order in orders
+        when order.amount > 100
+        when order.status.equals("confirmed")
+    {
+        println(order.id)
+    }
+
+    // Yield: pure transformation → new list
+    let bigIds = for order in orders
+        when order.amount > 100
+        yield order.id
+
+    // Into: pure accumulation → single value
+    let total = for order in orders
+        when order.status.equals("confirmed")
+        into sum(order.amount)
+
+    // Take: limit iteration
+    for order in orders
+        when order.amount > 0
+        take 2
+    {
+        println(order.id)
+    }
+
+    println(bigIds)
+    println(total)
+}

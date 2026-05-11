@@ -1,0 +1,227 @@
+#!/bin/bash
+# hll — HLL compiler toolchain
+#
+# Usage:
+#   hll build <file.hll> [-o output.jar] [--proto p5b]
+#   hll run <file.hll> [-- args...]
+#   hll check <file.hll>
+#   hll emit <file.hll>
+#
+# If no subcommand is given, assumes "build" (backward compat).
+
+set -e
+
+JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH
+
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+PROJECT_ROOT=$(realpath "$SCRIPT_DIR/..")
+PROTO="${HLL_PROTO:-p5b}"
+OUTPUT=""
+INPUT=""
+COMMAND=""
+RUN_ARGS=()
+
+# --- Subcommand parsing ---
+case "${1:-}" in
+    build|run|check|emit)
+        COMMAND="$1"; shift ;;
+    -h|--help|"")
+        COMMAND="help" ;;
+    *)
+        # No subcommand → assume "build" (backward compat with builderHll)
+        COMMAND="build" ;;
+esac
+
+if [ "$COMMAND" = "help" ]; then
+    cat <<EOF
+Usage: hll <command> <file.hll> [options]
+
+Commands:
+  build   Compile .hll to executable JAR (default)
+  run     Compile and execute immediately
+  check   Type-check only (no codegen/JAR)
+  emit    Print generated Java to stdout
+
+Options:
+  -o, --output FILE   Output JAR path (default: <name>.jar)
+  --proto NAME        Prototype compiler (default: p5b, env: HLL_PROTO)
+  -h, --help          Show this help
+
+Examples:
+  hll build app.hll -o myapp.jar
+  hll run app.hll -- arg1 arg2
+  hll check app.hll
+  hll emit app.hll | less
+EOF
+    exit 0
+fi
+
+# --- Argument parsing ---
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output) OUTPUT="$2"; shift 2 ;;
+        --proto) PROTO="$2"; shift 2 ;;
+        --) shift; RUN_ARGS=("$@"); break ;;
+        -*) echo "Unknown option: $1" >&2; exit 1 ;;
+        *) INPUT="$1"; shift ;;
+    esac
+done
+
+if [ -z "$INPUT" ]; then
+    echo "Error: no input file specified" >&2
+    echo "Usage: hll $COMMAND <file.hll>" >&2
+    exit 1
+fi
+
+INPUT_ABS=$(realpath "$INPUT")
+
+if [ ! -e "$INPUT_ABS" ]; then
+    echo "Error: $INPUT not found" >&2
+    exit 1
+fi
+
+COMPILER_DIR="$PROJECT_ROOT/prototypes/$PROTO/src"
+if [ ! -d "$COMPILER_DIR" ]; then
+    echo "Error: compiler not found at $COMPILER_DIR" >&2
+    exit 1
+fi
+
+# --- Compiler invocation (pre-compiled JAR or Maven fallback) ---
+invoke_compiler() {
+    local args="$1"
+    local compiler_jar="$COMPILER_DIR/target/hll-compiler.jar"
+
+    # Try pre-compiled JAR first (fast path, ~1s)
+    if [ -f "$compiler_jar" ]; then
+        java -jar "$compiler_jar" $args 2>/tmp/hll-build-stderr
+    else
+        # Fallback to mvn exec:java (slow path, ~5s)
+        (cd "$COMPILER_DIR" && mvn exec:java \
+            -Dexec.mainClass=dev.hll.Main \
+            -Dexec.args="$args" -q 2>/tmp/hll-build-stderr)
+    fi
+}
+
+# --- Commands ---
+
+do_compile_hll() {
+    # Returns Java source on stdout, errors on stderr
+    local output
+    output=$(invoke_compiler "$INPUT_ABS")
+    local exit_code=$?
+    local stderr=$(cat /tmp/hll-build-stderr 2>/dev/null)
+
+    if [ $exit_code -ne 0 ]; then
+        echo "$stderr" >&2
+        echo "HLL compilation failed." >&2
+        exit 1
+    fi
+
+    if [ -n "$stderr" ]; then
+        echo "$stderr" >&2
+    fi
+
+    if echo "$output" | grep -q "^ERROR:"; then
+        echo "$output" >&2
+        echo "HLL compilation failed." >&2
+        exit 1
+    fi
+
+    echo "$output"
+}
+
+do_check() {
+    echo "[check] Type-checking $INPUT..."
+    do_compile_hll > /dev/null
+    echo "OK — no errors."
+}
+
+do_emit() {
+    do_compile_hll
+}
+
+do_build() {
+    # Determine output name
+    if [ -z "$OUTPUT" ]; then
+        if [ -d "$INPUT" ]; then
+            OUTPUT="output.jar"
+        else
+            OUTPUT="$(basename "$INPUT" .hll).jar"
+        fi
+    fi
+
+    BUILD_DIR=$(mktemp -d /tmp/hll-build-XXXXXX)
+    trap "rm -rf $BUILD_DIR" EXIT
+
+    GENERATED_DIR="$BUILD_DIR/src"
+    CLASSES_DIR="$BUILD_DIR/classes"
+    mkdir -p "$GENERATED_DIR" "$CLASSES_DIR"
+
+    echo "=== HLL Builder ==="
+    echo "  Input:    $INPUT"
+    echo "  Compiler: $PROTO"
+    echo "  Output:   $OUTPUT"
+    echo ""
+
+    # Step 1: HLL → Java
+    echo "[1/4] Compiling HLL → Java..."
+    JAVA_OUTPUT=$(do_compile_hll)
+    echo "$JAVA_OUTPUT" > "$GENERATED_DIR/HllGenerated.java"
+    echo "  Generated: $(wc -l < "$GENERATED_DIR/HllGenerated.java") lines of Java"
+
+    # Step 2: Java → bytecode
+    echo "[2/4] Compiling Java → bytecode..."
+    if ! javac -d "$CLASSES_DIR" "$GENERATED_DIR/HllGenerated.java" 2>&1; then
+        echo "Java compilation failed." >&2
+        echo "Generated source saved at: $GENERATED_DIR/HllGenerated.java" >&2
+        trap "" EXIT
+        exit 1
+    fi
+
+    # Step 3: Manifest
+    echo "[3/4] Packaging JAR..."
+    MANIFEST="$BUILD_DIR/MANIFEST.MF"
+    echo "Manifest-Version: 1.0" > "$MANIFEST"
+    EXECUTABLE=false
+    if grep -q "public static void main" "$GENERATED_DIR/HllGenerated.java"; then
+        echo "Main-Class: HllGenerated" >> "$MANIFEST"
+        EXECUTABLE=true
+    fi
+
+    # Step 4: JAR
+    if ! jar cfm "$OUTPUT" "$MANIFEST" -C "$CLASSES_DIR" . 2>&1; then
+        echo "JAR creation failed." >&2
+        exit 1
+    fi
+
+    echo "[4/4] Done."
+    echo ""
+    echo "=== Build successful ==="
+    echo "  Output: $OUTPUT ($(du -h "$OUTPUT" | cut -f1))"
+    if [ "$EXECUTABLE" = true ]; then
+        echo "  Run:    java -jar $OUTPUT"
+    else
+        echo "  (no main function — library JAR)"
+    fi
+}
+
+do_run() {
+    # Build to temp JAR, then execute
+    OUTPUT=$(mktemp /tmp/hll-run-XXXXXX.jar)
+    trap "rm -f $OUTPUT" EXIT
+
+    # Suppress build output for run
+    do_build > /dev/null
+
+    java -jar "$OUTPUT" "${RUN_ARGS[@]}"
+}
+
+# --- Dispatch ---
+case "$COMMAND" in
+    build) do_build ;;
+    run)   do_run ;;
+    check) do_check ;;
+    emit)  do_emit ;;
+esac

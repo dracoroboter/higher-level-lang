@@ -25,8 +25,8 @@ Secondary questions:
 | p3a | "state strict" | Typestate with mandatory rebinding | 52 | ✅ Working |
 | p3b | "state light" | Typestate with in-place mutation | 49 | ✅ Winner L3 |
 | p4a | "module" | Module system + DI + DAG deps | 54 | ✅ Working |
-| p5a | "iterate classic" | for-in + lambda pipeline | 59 | ⚠️ Partial |
-| p5b | "iterate query" | for-in + when/yield/into (purity enforced) | 62 | ⚠️ Partial |
+| p5a | "iterate classic" | for-in + lambda pipeline | 58 | ✅ Working |
+| p5b | "iterate query" | for-in + when/yield/into (purity enforced) | 59 | ✅ Working |
 
 Score = weighted average of: correctness (30%), conciseness (25%, includes cyclomatic complexity), antipatterns blocked (25%), patterns included (20%). Scale 0–100. Weights configurable via env vars.
 
@@ -38,8 +38,8 @@ Score = weighted average of: correctness (30%), conciseness (25%, includes cyclo
 | p3a | 100% | 61 | 100 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
 | p3b | 100% | 48 | 75 | 26% (12/46) | 6% (3/47) | 3/3 | 12/12 | 52 | 66 |
 | p4a | 100% | 27 | 0 | 71% (33/46) | 6% (3/47) | 3/3 | 25/25 | 77 | 105 |
-| p5a | 100% | 51 | 0 | 54% (25/46) | 2% (1/47) | 1/1 | 25/25 | 52 | 105 |
-| p5b | 100% | 51 | 0 | 63% (29/46) | 2% (1/47) | 1/1 | 29/29 | 52 | 105 |
+| p5a | 100% | 49 | 37 | 73% (34/46) | 4% (2/47) | 2/2 | 26/26 | 52 | 101 |
+| p5b | 100% | 49 | 18 | 84% (39/46) | 4% (2/47) | 2/2 | 31/31 | 52 | 101 |
 
 ### Prototype Intents
 

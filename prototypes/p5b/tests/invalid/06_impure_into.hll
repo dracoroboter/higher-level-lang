@@ -1,0 +1,16 @@
+// INVALID: function with fails in into clause — into must be pure
+module impureinto
+
+struct IOError { String message }
+
+function fetchPrice(Int id) -> Int fails IOError {
+    fail IOError("network error")
+}
+
+function main() {
+    let ids = List(1, 2, 3)
+
+    // ERROR: fetchPrice has fails — cannot be in into clause
+    let total = for id in ids
+        into sum(fetchPrice(id))
+}

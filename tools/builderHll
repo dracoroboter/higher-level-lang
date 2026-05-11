@@ -1,0 +1,151 @@
+#!/bin/bash
+# builderHll — Compiles .hll files into an executable JAR
+#
+# Usage:
+#   builderHll <file.hll|directory> [-o output.jar] [--proto p5b]
+#
+# Examples:
+#   builderHll app.hll                     # → app.jar
+#   builderHll src/                        # → all .hll in dir → output.jar
+#   builderHll app.hll -o myapp.jar        # custom output name
+#   builderHll app.hll --proto p5a         # use p5a compiler
+
+set -e
+
+JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH
+
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+PROJECT_ROOT=$(realpath "$SCRIPT_DIR/..")
+PROTO="${HLL_PROTO:-p5b}"
+OUTPUT=""
+INPUT=""
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output) OUTPUT="$2"; shift 2 ;;
+        --proto) PROTO="$2"; shift 2 ;;
+        -h|--help)
+            echo "Usage: builderHll <file.hll|directory> [-o output.jar] [--proto p5b|p5a]"
+            echo ""
+            echo "Compiles HLL source files into an executable JAR."
+            echo ""
+            echo "Options:"
+            echo "  -o, --output FILE   Output JAR path (default: <name>.jar)"
+            echo "  --proto NAME        Prototype compiler to use (default: p5b)"
+            echo "  -h, --help          Show this help"
+            exit 0
+            ;;
+        *) INPUT="$1"; shift ;;
+    esac
+done
+
+if [ -z "$INPUT" ]; then
+    echo "Error: no input file or directory specified" >&2
+    echo "Usage: builderHll <file.hll|directory> [-o output.jar]" >&2
+    exit 1
+fi
+
+COMPILER_DIR="$PROJECT_ROOT/prototypes/$PROTO/src"
+if [ ! -d "$COMPILER_DIR" ]; then
+    echo "Error: compiler not found at $COMPILER_DIR" >&2
+    exit 1
+fi
+
+# Determine output name
+if [ -z "$OUTPUT" ]; then
+    if [ -d "$INPUT" ]; then
+        OUTPUT="output.jar"
+    else
+        OUTPUT="$(basename "$INPUT" .hll).jar"
+    fi
+fi
+
+# Create temp build directory
+BUILD_DIR=$(mktemp -d /tmp/hll-build-XXXXXX)
+trap "rm -rf $BUILD_DIR" EXIT
+
+GENERATED_DIR="$BUILD_DIR/src"
+CLASSES_DIR="$BUILD_DIR/classes"
+mkdir -p "$GENERATED_DIR" "$CLASSES_DIR"
+
+echo "=== HLL Builder ==="
+echo "  Input:    $INPUT"
+echo "  Compiler: $PROTO"
+echo "  Output:   $OUTPUT"
+echo ""
+
+# Step 1: HLL → Java (type-check + codegen)
+echo "[1/4] Compiling HLL → Java..."
+INPUT_ABS=$(realpath "$INPUT")
+JAVA_OUTPUT=$(cd "$COMPILER_DIR" && mvn exec:java \
+    -Dexec.mainClass=dev.hll.Main \
+    -Dexec.args="$INPUT_ABS" -q 2>/tmp/hll-build-stderr)
+
+EXIT_CODE=$?
+STDERR_OUTPUT=$(cat /tmp/hll-build-stderr 2>/dev/null)
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "$STDERR_OUTPUT" >&2
+    echo "" >&2
+    echo "HLL compilation failed." >&2
+    exit 1
+fi
+
+# Show warnings but don't fail
+if [ -n "$STDERR_OUTPUT" ]; then
+    echo "$STDERR_OUTPUT" >&2
+fi
+
+# Check if stdout contains error markers (shouldn't happen but safety check)
+if echo "$JAVA_OUTPUT" | grep -q "^ERROR:"; then
+    echo "$JAVA_OUTPUT" >&2
+    echo "" >&2
+    echo "HLL compilation failed." >&2
+    exit 1
+fi
+
+# Write generated Java
+echo "$JAVA_OUTPUT" > "$GENERATED_DIR/HllGenerated.java"
+echo "  Generated: $(wc -l < "$GENERATED_DIR/HllGenerated.java") lines of Java"
+
+# Step 2: Compile Java
+echo "[2/4] Compiling Java → bytecode..."
+javac -d "$CLASSES_DIR" "$GENERATED_DIR/HllGenerated.java" 2>&1
+if [ $? -ne 0 ]; then
+    echo "Java compilation failed." >&2
+    echo "Generated source saved at: $GENERATED_DIR/HllGenerated.java" >&2
+    # Don't delete on failure — useful for debugging
+    trap "" EXIT
+    exit 1
+fi
+
+# Step 3: Create manifest (executable if main exists)
+echo "[3/4] Packaging JAR..."
+MANIFEST="$BUILD_DIR/MANIFEST.MF"
+echo "Manifest-Version: 1.0" > "$MANIFEST"
+if grep -q "public static void main" "$GENERATED_DIR/HllGenerated.java"; then
+    echo "Main-Class: HllGenerated" >> "$MANIFEST"
+    EXECUTABLE=true
+else
+    EXECUTABLE=false
+fi
+
+# Step 4: Create JAR
+jar cfm "$OUTPUT" "$MANIFEST" -C "$CLASSES_DIR" . 2>&1
+if [ $? -ne 0 ]; then
+    echo "JAR creation failed." >&2
+    exit 1
+fi
+
+echo "[4/4] Done."
+echo ""
+echo "=== Build successful ==="
+echo "  Output: $OUTPUT ($(du -h "$OUTPUT" | cut -f1))"
+if [ "$EXECUTABLE" = true ]; then
+    echo "  Run:    java -jar $OUTPUT"
+else
+    echo "  (no main function — library JAR)"
+fi

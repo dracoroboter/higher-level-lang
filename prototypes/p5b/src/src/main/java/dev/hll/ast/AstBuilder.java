@@ -490,14 +490,31 @@ public class AstBuilder extends HllBaseVisitor<Object> {
 
     @Override
     public Object visitForYieldExpr(HllParser.ForYieldExprContext ctx) {
-        // for x in collection where ... yield expr → produces a list
-        return new Node.FnCall("__forYield__", List.of((Node.Expr) visit(ctx.expr())));
+        String varName = ctx.IDENT().getText();
+        Node.Expr iterable = (Node.Expr) visit(ctx.expr());
+        List<Node.Expr> whens = ctx.whenClause().stream()
+                .map(w -> (Node.Expr) visit(w.expr()))
+                .collect(Collectors.toList());
+        Optional<Node.Expr> take = ctx.takeClause() != null
+                ? Optional.of((Node.Expr) visit(ctx.takeClause().expr()))
+                : Optional.empty();
+        Node.Expr yieldExpr = (Node.Expr) visit(ctx.yieldClause().expr());
+        return new Node.ForExpr(varName, iterable, whens, take, Optional.of(yieldExpr), Optional.empty(), Optional.empty());
     }
 
     @Override
     public Object visitForIntoExpr(HllParser.ForIntoExprContext ctx) {
-        // for x in collection where ... into fn(expr) → produces accumulated value
-        return new Node.FnCall("__forInto__", List.of((Node.Expr) visit(ctx.expr())));
+        String varName = ctx.IDENT().getText();
+        Node.Expr iterable = (Node.Expr) visit(ctx.expr());
+        List<Node.Expr> whens = ctx.whenClause().stream()
+                .map(w -> (Node.Expr) visit(w.expr()))
+                .collect(Collectors.toList());
+        Optional<Node.Expr> take = ctx.takeClause() != null
+                ? Optional.of((Node.Expr) visit(ctx.takeClause().expr()))
+                : Optional.empty();
+        String intoFn = ctx.intoClause().IDENT().getText();
+        Node.Expr intoArg = (Node.Expr) visit(ctx.intoClause().expr());
+        return new Node.ForExpr(varName, iterable, whens, take, Optional.empty(), Optional.of(intoFn), Optional.of(intoArg));
     }
 
     @Override

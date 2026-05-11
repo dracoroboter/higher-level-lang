@@ -76,11 +76,13 @@ for order in orders
 Nessun linguaggio mainstream enforced la purezza nelle clausole di iterazione a compile-time. Questo previene il problema "I/O dentro filter/map" che affligge Java Streams.
 
 ### Stato
-⚠️ Parzialmente implementato (2026-05-10)
+✅ Funzionante (2026-05-12)
 - Grammatica: for-in con when/take/yield/into
-- TypeChecker: purezza delle clausole `when` verificata (no fails, no actor calls)
-- Test: 1 valid (clausole pure), 2 invalid (impure when rifiutato)
-- Mancano: codegen completo, benchmark L5, List<T> builtin
+- TypeChecker: purezza delle clausole `when`/`yield`/`into` verificata (no fails, no actor calls)
+- Codegen: genera Java streams (filter/map/reduce/limit/collect)
+- `List<T>` builtin con costruttore `List(...)`
+- Test: 3 valid + 2 benchmark, 31 invalid (25 ereditati + 6 iterazione)
+- Score: 59 (31 test invalid + 8 blocked by design)
 
 
 ### Nota: `when` vs `where`

@@ -1,0 +1,19 @@
+// INVALID: I/O in yield clause — yield must be pure
+module impureyield
+
+export service Database {
+    function fetchName(Int id) -> String fails IOError
+}
+
+provide Database {
+    function fetchName(Int id) -> String fails IOError { "name" }
+}
+
+function main() {
+    let db = spawn Database
+    let ids = List(1, 2, 3)
+
+    // ERROR: yield calls spawned actor (I/O)
+    let names = for id in ids
+        yield db.fetchName(id)
+}

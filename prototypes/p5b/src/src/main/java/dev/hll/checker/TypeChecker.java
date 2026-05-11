@@ -362,12 +362,18 @@ public class TypeChecker {
                 innerScope.put(fi.varName(), null); // type inferred from iterable
                 // Check purity of when clauses: no calls to functions with fails, no spawned actors
                 for (var when : fi.whenClauses()) {
-                    checkPurity(when, innerScope, context);
+                    checkPurity(when, innerScope, context, "when");
                     inferType(when, innerScope, context);
                 }
                 fi.take().ifPresent(t -> inferType(t, scope, context));
-                fi.yieldExpr().ifPresent(y -> inferType(y, innerScope, context));
-                fi.intoArg().ifPresent(a -> inferType(a, innerScope, context));
+                fi.yieldExpr().ifPresent(y -> {
+                    checkPurity(y, innerScope, context, "yield");
+                    inferType(y, innerScope, context);
+                });
+                fi.intoArg().ifPresent(a -> {
+                    checkPurity(a, innerScope, context, "into");
+                    inferType(a, innerScope, context);
+                });
                 // Check: no reassignment of iterated collection in body
                 if (fi.body().isPresent() && fi.iterable() instanceof Identifier iterVar) {
                     for (var bodyStmt : fi.body().get().statements()) {
@@ -497,6 +503,10 @@ public class TypeChecker {
 
             case FnCall fc -> {
                 calledFunctions.add(fc.name());
+                // Always visit arguments to track nested calls
+                for (var arg : fc.args()) {
+                    inferType(arg, scope, context);
+                }
                 if (fc.name().startsWith("__match__")) {
                     int armCount = Integer.parseInt(fc.name().substring("__match__".length()));
                     if (!fc.args().isEmpty()) {
@@ -550,6 +560,26 @@ public class TypeChecker {
                 return inferType(ae.expr(), scope, context, chainDepth);
             }
 
+            case ForExpr fe -> {
+                inferType(fe.iterable(), scope, context);
+                var innerScope = new HashMap<>(scope);
+                innerScope.put(fe.varName(), null);
+                for (var when : fe.whenClauses()) {
+                    checkPurity(when, innerScope, context, "when");
+                    inferType(when, innerScope, context);
+                }
+                fe.take().ifPresent(t -> inferType(t, scope, context));
+                fe.yieldExpr().ifPresent(y -> {
+                    checkPurity(y, innerScope, context, "yield");
+                    inferType(y, innerScope, context);
+                });
+                fe.intoArg().ifPresent(a -> {
+                    checkPurity(a, innerScope, context, "into");
+                    inferType(a, innerScope, context);
+                });
+                return null;
+            }
+
             case OptionPropagate op -> {
                 var innerType = inferType(op.expr(), scope, context);
                 if (innerType != null && !innerType.isOption() && !innerType.name().equals("Result")) {
@@ -574,25 +604,29 @@ public class TypeChecker {
     }
 
     private void checkPurity(Expr expr, Map<String, TypeExpr> scope, String context) {
-        // when/yield clauses must be pure: no calls to functions with fails, no method calls on spawned actors
+        checkPurity(expr, scope, context, "when");
+    }
+
+    private void checkPurity(Expr expr, Map<String, TypeExpr> scope, String context, String clauseName) {
+        // when/yield/into clauses must be pure: no calls to functions with fails, no method calls on spawned actors
         switch (expr) {
             case FnCall fc -> {
                 var fn = functions.get(fc.name());
                 if (fn != null && !fn.fails().isEmpty()) {
-                    errors.add("Impure expression in 'when' clause: '" + fc.name() + "' declares 'fails'. Move I/O to the for body. In: " + context);
+                    errors.add("Impure expression in '" + clauseName + "' clause: '" + fc.name() + "' declares 'fails'. Move I/O to the for body. In: " + context);
                 }
             }
             case MethodCall mc -> {
                 if (mc.object() instanceof Identifier id && spawnedVars.contains(id.name())) {
-                    errors.add("Impure expression in 'when' clause: calling spawned actor '" + id.name() + "'. Move I/O to the for body. In: " + context);
+                    errors.add("Impure expression in '" + clauseName + "' clause: calling spawned actor '" + id.name() + "'. Move I/O to the for body. In: " + context);
                 }
-                checkPurity(mc.object(), scope, context); // recurse into object
+                checkPurity(mc.object(), scope, context, clauseName);
             }
             case BinaryOp bo -> {
-                checkPurity(bo.left(), scope, context);
-                checkPurity(bo.right(), scope, context);
+                checkPurity(bo.left(), scope, context, clauseName);
+                checkPurity(bo.right(), scope, context, clauseName);
             }
-            case UnaryOp uo -> checkPurity(uo.operand(), scope, context);
+            case UnaryOp uo -> checkPurity(uo.operand(), scope, context, clauseName);
             default -> {} // literals, identifiers, field access are pure
         }
     }

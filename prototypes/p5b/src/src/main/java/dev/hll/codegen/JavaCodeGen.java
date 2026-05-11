@@ -15,6 +15,9 @@ public class JavaCodeGen {
 
     public String generate(Program program) {
         emit("import java.util.Optional;");
+        emit("import java.util.List;");
+        emit("import java.util.ArrayList;");
+        emit("import java.util.stream.*;");
         emit("");
         emit("public class HllGenerated {");
         indent++;
@@ -204,11 +207,58 @@ public class JavaCodeGen {
                 emit("}");
             }
             case ForInStmt fi -> {
-                emit("for (var " + fi.varName() + " : " + generateExpr(fi.iterable()) + ") {");
-                indent++;
-                if (fi.body().isPresent()) generateBlock(fi.body().get());
-                indent--;
-                emit("}");
+                String iter = generateExpr(fi.iterable());
+                if (fi.yieldExpr().isPresent()) {
+                    // yield → stream().filter().map().collect()
+                    String stream = iter + ".stream()";
+                    for (var when : fi.whenClauses()) {
+                        stream += ".filter(" + fi.varName() + " -> " + generateExpr(when) + ")";
+                    }
+                    if (fi.take().isPresent()) {
+                        stream += ".limit(" + generateExpr(fi.take().get()) + ")";
+                    }
+                    stream += ".map(" + fi.varName() + " -> " + generateExpr(fi.yieldExpr().get()) + ")";
+                    stream += ".collect(Collectors.toList())";
+                    emit("var __yield_result__ = " + stream + ";");
+                } else if (fi.intoFn().isPresent()) {
+                    // into → stream().filter().mapToInt().sum()/count()/etc
+                    String stream = iter + ".stream()";
+                    for (var when : fi.whenClauses()) {
+                        stream += ".filter(" + fi.varName() + " -> " + generateExpr(when) + ")";
+                    }
+                    if (fi.take().isPresent()) {
+                        stream += ".limit(" + generateExpr(fi.take().get()) + ")";
+                    }
+                    String fn = fi.intoFn().get();
+                    String arg = fi.intoArg().map(this::generateExpr).orElse(fi.varName());
+                    stream += switch (fn) {
+                        case "sum" -> ".mapToInt(" + fi.varName() + " -> " + arg + ").sum()";
+                        case "count" -> ".count()";
+                        case "max" -> ".mapToInt(" + fi.varName() + " -> " + arg + ").max().orElse(0)";
+                        case "min" -> ".mapToInt(" + fi.varName() + " -> " + arg + ").min().orElse(0)";
+                        default -> ".collect(Collectors.toList())";
+                    };
+                    emit("var __into_result__ = " + stream + ";");
+                } else {
+                    // Imperative for-in with optional when/take
+                    if (fi.take().isPresent()) {
+                        emit("int __take_count__ = 0;");
+                    }
+                    emit("for (var " + fi.varName() + " : " + iter + ") {");
+                    indent++;
+                    if (fi.take().isPresent()) {
+                        emit("if (__take_count__ >= " + generateExpr(fi.take().get()) + ") break;");
+                    }
+                    for (var when : fi.whenClauses()) {
+                        emit("if (!(" + generateExpr(when) + ")) continue;");
+                    }
+                    if (fi.take().isPresent()) {
+                        emit("__take_count__++;");
+                    }
+                    if (fi.body().isPresent()) generateBlock(fi.body().get());
+                    indent--;
+                    emit("}");
+                }
             }
             case AssignStmt as2 -> emit(as2.name() + " = " + generateExpr(as2.value()) + ";");
         }
@@ -259,6 +309,11 @@ public class JavaCodeGen {
             case FnCall fc -> {
                 if (typeAliases.contains(fc.name()) || structs.contains(fc.name())) {
                     yield "new " + fc.name() + "(" + fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("") + ")";
+                }
+                // List constructor
+                if (fc.name().equals("List")) {
+                    String items = fc.args().stream().map(this::generateExpr).reduce((a, b) -> a + ", " + b).orElse("");
+                    yield "List.of(" + items + ")";
                 }
                 // Match expression placeholder — should not reach here with new MatchExpr node
                 if (fc.name().startsWith("__match__")) {
@@ -311,6 +366,31 @@ public class JavaCodeGen {
             }
             case SpawnExpr se -> "new " + se.serviceName() + "Actor()";
             case AwaitExpr ae -> generateExpr(ae.expr()) + ".get()";
+            case ForExpr fe -> {
+                String iter = generateExpr(fe.iterable());
+                String stream = iter + ".stream()";
+                for (var when : fe.whenClauses()) {
+                    stream += ".filter(" + fe.varName() + " -> " + generateExpr(when) + ")";
+                }
+                if (fe.take().isPresent()) {
+                    stream += ".limit(" + generateExpr(fe.take().get()) + ")";
+                }
+                if (fe.yieldExpr().isPresent()) {
+                    stream += ".map(" + fe.varName() + " -> " + generateExpr(fe.yieldExpr().get()) + ")";
+                    stream += ".collect(Collectors.toList())";
+                } else if (fe.intoFn().isPresent()) {
+                    String fn = fe.intoFn().get();
+                    String arg = fe.intoArg().map(this::generateExpr).orElse(fe.varName());
+                    stream += switch (fn) {
+                        case "sum" -> ".mapToInt(" + fe.varName() + " -> " + arg + ").sum()";
+                        case "count" -> ".count()";
+                        case "max" -> ".mapToInt(" + fe.varName() + " -> " + arg + ").max().orElse(0)";
+                        case "min" -> ".mapToInt(" + fe.varName() + " -> " + arg + ").min().orElse(0)";
+                        default -> ".collect(Collectors.toList())";
+                    };
+                }
+                yield stream;
+            }
         };
     }
 
@@ -318,12 +398,25 @@ public class JavaCodeGen {
         if (type.isOption()) {
             return "Optional<" + javaType(type.inner()) + ">";
         }
+        if (type.name().equals("List") && type.typeArg().isPresent()) {
+            return "List<" + javaTypeBoxed(type.inner()) + ">";
+        }
         return switch (type.name()) {
             case "String" -> "String";
             case "Int" -> "int";
             case "Float" -> "double";
             case "Bool" -> "boolean";
+            case "List" -> "List<Object>";
             default -> type.name();
+        };
+    }
+
+    private String javaTypeBoxed(TypeExpr type) {
+        return switch (type.name()) {
+            case "Int" -> "Integer";
+            case "Float" -> "Double";
+            case "Bool" -> "Boolean";
+            default -> javaType(type);
         };
     }
 

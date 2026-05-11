@@ -1,0 +1,10 @@
+// INVALID: modify collection while iterating
+module concurrent_mod
+
+function main() {
+    let mut orders = List(1, 2, 3)
+
+    for item in orders {
+        orders = List(4, 5)
+    }
+}

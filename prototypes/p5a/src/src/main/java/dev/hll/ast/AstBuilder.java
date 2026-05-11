@@ -495,6 +495,14 @@ public class AstBuilder extends HllBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitLambda2Expr(HllParser.Lambda2ExprContext ctx) {
+        String param1 = ctx.IDENT(0).getText();
+        String param2 = ctx.IDENT(1).getText();
+        Node.Expr body = (Node.Expr) visit(ctx.expr());
+        return new Node.Lambda2Expr(param1, param2, body);
+    }
+
+    @Override
     public Object visitMatchExpr(HllParser.MatchExprContext ctx) {
         Node.Expr subject = (Node.Expr) visit(ctx.expr());
         var arms = ctx.matchArm().stream()
